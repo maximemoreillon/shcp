@@ -13,14 +13,6 @@ var misc = require('./misc');
 var routing = require("./routing");
 
 
-// Send to console if debugging
-debugging = true;
-function debug(message) {
-  if(debugging) {
-    console.log(message);
-  }
-}
-
 
 // Array containign all the devices, populated by a MySQL DB
 var devices = [];
@@ -36,12 +28,12 @@ var mqtt_client  = mqtt.connect('mqtt://192.168.1.2', mqtt_options);
 function subscribe_all(){
   // Subscribe to all topics
 
-  debug("Subscribing to " + devices.length + " topics");
+  console.log("Subscribing to " + devices.length + " topics");
 
   // Subscribe to MQTT topics
   for (var device_index = 0; device_index < devices.length; device_index++){
     var device = devices[device_index];
-    debug("MQTT subscribing to: " + device.status_topic);
+    console.log("MQTT subscribing to: " + device.status_topic);
     mqtt_client.subscribe(device.status_topic);
   }
 }
@@ -49,20 +41,20 @@ function subscribe_all(){
 function unsubscribe_all(){
   // Subscribe to all topics
 
-  debug("Subscribing to " + devices.length + " topics");
+  console.log("Subscribing to " + devices.length + " topics");
 
   // Subscribe to MQTT topics
   for (var device_index = 0; device_index < devices.length; device_index++){
     var device = devices[device_index];
-    debug("MQTT subscribing to: " + device.status_topic);
+    console.log("MQTT subscribing to: " + device.status_topic);
     mqtt_client.unsubscribe(device.status_topic);
   }
 }
 
 // Configuration of MySQL
-function get_devices_from_MySQL (){
+function get_devices_from_MySQL_and_subscribe (){
   // WHERE TO PUT THIS??
-  debug("Refreshing devices from MySQL");
+  console.log("Refreshing devices from MySQL");
   con.query("SELECT * FROM " + misc.MySQL_table_name, function (err, result, fields) {
     if (err) throw err;
 
@@ -130,8 +122,8 @@ con.connect(function(err) {
   console.log("MySQL Connected!");
 
   // Retreve devices from table and Subscribe
-  // WARNING: MQTT might not be connected yet
-  get_devices_from_MySQL();
+  // WARNING: MQTT might not be connected yet so execute this within the connection function
+  get_devices_from_MySQL_and_subscribe();
 
 });
 
@@ -216,6 +208,8 @@ app.get('/logout', function (req, res) {
 
 app.post('/add_device', checkAuth,function(req, res) {
 
+  // unsubscribe from all
+  // WARNING:  Could simply subscribe to the new topic...
   unsubscribe_all();
 
   // Inserting into MySQL according to POST request
@@ -229,15 +223,13 @@ app.post('/add_device', checkAuth,function(req, res) {
   + req.body.payload_on + "','"
   + req.body.payload_off + "');";
 
-  console.log(sql);
-
 
   con.query(sql, function (err, result) {
     if (err) throw err;
     console.log("New device added");
 
-    // Get the new list of devices with subscribe
-    get_devices_from_MySQL();
+    // Get the new list of devices with subscribe embedded inside
+    get_devices_from_MySQL_and_subscribe();
 
   });
 
@@ -250,17 +242,15 @@ app.post('/delete_device',function(req, res) {
 
   unsubscribe_all();
 
-  console.log("Deleting ID no " + req.body.id);
+  console.log("Deleting device ID no " + req.body.id);
   var sql = "DELETE FROM "+misc.MySQL_table_name+" WHERE id = '"+req.body.id+"'";
   con.query(sql, function (err, result) {
     if (err) throw err;
     console.log("Number of records deleted: " + result.affectedRows);
 
-    // Get the new list of devices
-    get_devices_from_MySQL();
+    // Get the new list of devices with subscribe embedded inside
+    get_devices_from_MySQL_and_subscribe();
   });
-
-
 
   res.redirect('/manage_devices');
 
@@ -275,11 +265,12 @@ console.log('Server started');
 var io = require('socket.io')(https_server);
 
 
-//
-// WebSocket and MQTT
-//
+/*
+Websockets
+*/
+
 function set_all_devices_states_ws() {
-  debug("Setting the state of all devices through Websocket");
+  console.log("Setting the state of all devices through Websocket");
   for (var device_index = 0; device_index < devices.length; device_index++){
     var device = devices[device_index];
 
@@ -295,15 +286,15 @@ function set_all_devices_states_ws() {
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
-  debug('A user connected');
+  console.log('A user connected');
   set_all_devices_states_ws();
 
   socket.on('disconnect', function(){
-    debug('user disconnected');
+    console.log('user disconnected');
   });
 
   socket.on("switch", function(data) {
-    debug("Socket message: " + data.topic +": " + data.payload);
+    console.log("Socket message: " + data.topic +": " + data.payload);
 
     /*
     TWO OPTIONS HERE:
@@ -330,6 +321,11 @@ io.sockets.on('connection', function (socket) {
 });
 
 
+/*
+MQTT
+*/
+
+
 mqtt_client.on('connect', function () {
   console.log("MQTT connected");
 });
@@ -353,22 +349,25 @@ mqtt_client.on('message', function (topic, message) {
   // message is Buffer
 
 
-  debug("MQTT message arrived on " + topic + ": " + message);
+  console.log("MQTT message arrived on " + topic + ": " + message);
 
-  // Update the state in the DB
+  state = message.toString();
+
+  // Remember the state of the device locally
+  // Necessary to send info to newly connected clients
+  // SHOULD BE A MORE EFFICIENT WAY TO FIND THE DEVICE
   for (var device_index = 0; device_index < devices.length; device_index++){
     var device = devices[device_index];
     if(device.status_topic == topic) {
-
-      state = message.toString();
-
-      // Prepare data to be sent by WebSocket and send it through websocket
-      console.log("Sending state by websocket: " + topic + ": " +state);
-      var data = {topic: topic, payload: state};
-      io.sockets.emit('indicator',data);
-
-      // Keep a track of the states on the server
       devices[device_index].state = state;
     }
   }
+
+  // Send data through websockets
+  console.log("Sending state by websocket: " + topic + ": " +state);
+  var data = {topic: topic, payload: state};
+  io.sockets.emit('indicator',data);
+
+
+
 });

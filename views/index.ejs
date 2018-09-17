@@ -6,14 +6,8 @@
 
   <link rel="stylesheet" type="text/css" href="css/show_devices.css">
 
-
 </head>
 <body>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script> <!-- include socket.io client side script -->
-
-  <script>
-  var socket = io();
-  </script>
 
   <div class="wrapper">
 
@@ -22,7 +16,6 @@
     </header>
 
     <main>
-
       <div id="floorplan_wrapper" class="floorplan_wrapper">
         <img id="floorplan" class="floorplan" src="images/floorplan.svg">
 
@@ -37,13 +30,9 @@
             src="<%=device.image%>">
           </div>
         <%} );%>
-
       </div>
 
-      <form action="manage_devices" >
-        <input type="submit" value="Mange entities">
-      </form>
-
+      <input type="button" value="Manage entities" onclick="window.location.href='manage_devices'">
 
     </main>
 
@@ -54,15 +43,15 @@
   </div> <!-- End of wrapper -->
 
   <!-- Modal for connection -->
-  <div id="myModal" class="modal">
-    <!-- Modal content -->
+  <div id="disconnected_modal" class="modal">
     <div class="modal-content">
       NO CONNECTION
     </div>
   </div>
 
-  <script src="js/incoming_websocket_message.js"></script>
-  <script src="js/no_connection_modal.js"></script>
+  <!-- JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script> <!-- include socket.io client side script -->
+  <script src="js/handle_ws.js"></script>
 
 </body>
 </html>
