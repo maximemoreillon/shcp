@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<% include partials/head %>
+</head>
+<body>
+	<div class="wrapper">
+		<header>
+			<% include partials/header %>
+		</header>
+		<main>
+			<div class="login_form">
+			  <form method="post" action="/login">
+			      <input type="text" name="user" placeholder="Username"><br>
+			      <input type="password" name="password" placeholder="Password"><br>
+			      <input type="submit" value="Login">
+			  </form>
+			</div>
+		</main>
+
+		<footer>
+			<% include partials/footer %>
+		</footer>
+
+	</div>
+</body>
+</html>

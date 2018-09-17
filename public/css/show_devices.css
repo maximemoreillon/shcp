@@ -1,0 +1,25 @@
+.floorplan_wrapper {
+  position: relative; /* needs to be relative */
+}
+
+.floorplan {
+  max-width: 600px;
+  max-height: 600px;
+}
+
+.device_wrapper {
+  position: absolute;
+
+  width: 50px;
+  height: 50px;
+}
+
+.device_image {
+  position: relative;
+
+  width: 50px;
+  height: 50px;
+
+  left: -50%;
+  top: -50%;
+}

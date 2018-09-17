@@ -1,0 +1,87 @@
+<!-- views/pages/index.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include partials/head %>
+
+  <link rel="stylesheet" type="text/css" href="css/show_devices.css">
+  <link rel="stylesheet" type="text/css" href="css/add_device_modal.css">
+
+  <script src="js/add_device.js"></script>
+
+</head>
+<body>
+
+  <div class="wrapper">
+
+    <header>
+      <% include partials/header %>
+    </header>
+
+    <main>
+
+      <div id="floorplan_wrapper" class="floorplan_wrapper">
+        <img id="floorplan" class="floorplan" src="images/floorplan.svg">
+
+        <!-- Shows the current devices -->
+        <% devices.forEach(function(device) { %>
+          <div
+          class="device_wrapper"
+          style=" left: <%=device.position_x%>%; top: <%=device.position_y%>%;">
+            <img
+            class="device_image"
+            id='<%=device.status_topic%>'
+            src="<%=device.image%>">
+          </div>
+        <%} );%>
+
+        <!-- Shows an image where the user clicks to add an image -->
+        <div id="new_device_wrapper" class="device_wrapper">
+          <img id="new_device_image" class="device_image" src="images/light.svg">
+        </div>
+
+        <div id="modal">
+          <div class="modal_inner">
+            <form id="add_device_form" form action="add_device" method="post">
+              <input id="position_x_input" type="hidden" name="position_x">
+              <input id="position_y_input" type="hidden" name="position_y">
+              <select onchange="update_device_icon(this)" name='type'>
+                <option value="light">Light</option>
+                <option value="lock">Lock</option>
+                <option value="climate">Climate control</option>
+                <option value="other">Other</option>
+              </select><br>
+              <input type="text" name="status_topic" placeholder="Status topic"><br>
+              <input type="text" name="command_topic" placeholder="Command topic"><br>
+              <input type="text" name="payload_on" placeholder="Payload ON"><br>
+              <input type="text" name="payload_off" placeholder="Payload OFF"><br>
+            </form>
+            <button id="submit_button">Submit</button>
+            <button id="modal_close_button">Cancel</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="controls_wrapper">
+        <form action="/" method="get">
+          <input type="submit" value="Return">
+        </form>
+        <form action="/show_table" method="get">
+          <input type="submit" value="Show table">
+        </form>
+      </div>
+
+    </main>
+
+    <footer>
+      <% include partials/footer %>
+      <div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+    </footer>
+
+  </div>
+
+
+</body>
+</html>

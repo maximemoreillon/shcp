@@ -1,0 +1,64 @@
+<!-- views/show_tables.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include partials/head %>
+
+  <link rel="stylesheet" type="text/css" href="css/show_devices.css">
+
+
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script> <!-- include socket.io client side script -->
+
+  <script>
+  var socket = io();
+  </script>
+
+  <div class="wrapper">
+
+    <header>
+      <% include partials/header %>
+    </header>
+
+    <main>
+
+      <table>
+        <% devices.forEach(function(device) { %>
+
+          <tr>
+            <td><%=device.id%></td>
+            <td><%=device.type%></td>
+            <td><%=device.position_x%></td>
+            <td><%=device.position_y%></td>
+            <td><%=device.status_topic%></td>
+            <td><%=device.command_topic%></td>
+            <td><%=device.payload_on%></td>
+            <td><%=device.payload_off%></td>
+
+          </tr>
+
+
+        <%} );%>
+      </table>
+
+
+
+
+
+
+      <form action="manage_devices" >
+        <input type="submit" value="Mange entities">
+      </form>
+
+
+    </main>
+
+    <footer>
+      <% include partials/footer %>
+    </footer>
+
+  </div>
+
+</body>
+</html>
