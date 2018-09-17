@@ -15,7 +15,7 @@ var routing = require("./routing");
 
 
 // Array containign all the devices, populated by a MySQL DB
-var devices = [];
+var devices;
 
 // MQTT config
 const mqtt_options = {
@@ -28,26 +28,18 @@ var mqtt_client  = mqtt.connect('mqtt://192.168.1.2', mqtt_options);
 function subscribe_all(){
   // Subscribe to all topics
 
-  console.log("Subscribing to " + devices.length + " topics");
-
-  // Subscribe to MQTT topics
-  for (var device_index = 0; device_index < devices.length; device_index++){
-    var device = devices[device_index];
-    console.log("MQTT subscribing to: " + device.status_topic);
-    mqtt_client.subscribe(device.status_topic);
+  console.log("Subscribing to all MQTT topics");
+  for(var id in devices) {
+    mqtt_client.subscribe(devices[id].status_topic);
   }
 }
 
 function unsubscribe_all(){
   // Subscribe to all topics
 
-  console.log("Subscribing to " + devices.length + " topics");
-
-  // Subscribe to MQTT topics
-  for (var device_index = 0; device_index < devices.length; device_index++){
-    var device = devices[device_index];
-    console.log("MQTT subscribing to: " + device.status_topic);
-    mqtt_client.unsubscribe(device.status_topic);
+  console.log("Subscribing to all MQTT topics");
+  for(var id in devices) {
+    mqtt_client.unsubscribe(devices[id].status_topic);
   }
 }
 
@@ -58,45 +50,20 @@ function get_devices_from_MySQL_and_subscribe (){
   con.query("SELECT * FROM " + misc.MySQL_table_name, function (err, result, fields) {
     if (err) throw err;
 
-    // Extract all results to local array
-    devices = [];
-    for (var device_index = 0; device_index < result.length; device_index++){
-      // MIGHT NOT NEED TO TAKE ALL KEYS ONE BY ONE
+    // Extract all results to local variable
+    //{1:{topic:banana,payload:roger},2:{}}
 
-      devices[device_index] = {}; // This erases everything about the array!
-
-      devices[device_index].type = result[device_index].type;
-      devices[device_index].position_x = result[device_index].position_x;
-      devices[device_index].position_y = result[device_index].position_y;
-      devices[device_index].command_topic = result[device_index].command_topic;
-      devices[device_index].status_topic = result[device_index].status_topic;
-
-      // Payload
-      devices[device_index].payload_on = result[device_index].payload_on;
-      devices[device_index].payload_off = result[device_index].payload_off;
-
-
-      devices[device_index].id = result[device_index].id; // Necessary for delete buttons
-
-
-      devices[device_index].state = "UNKNOWN";
-
-      switch (result[device_index].type) {
-        case "light":
-          devices[device_index].image = "images/light.svg";
-          break;
-        case "lock":
-          devices[device_index].image = "images/lock.svg";
-          break;
-        case "climate":
-          devices[device_index].image = "images/ac.svg";
-          break;
-        default:
-          devices[device_index].image = "images/question-mark.svg";
-      }
-
-      // The state element is used only for when a client connects and needs to receive all the states
-      //devices[device_index].state = result[device_index].state;
+    devices = {};
+    for (var result_index = 0; result_index < result.length; result_index++){
+      devices[result[result_index].id] = {};
+      devices[result[result_index].id].type = result[result_index].type;
+      devices[result[result_index].id].state = "UNKNOWN";
+      devices[result[result_index].id].position_x = result[result_index].position_x;
+      devices[result[result_index].id].position_y = result[result_index].position_y;
+      devices[result[result_index].id].command_topic = result[result_index].command_topic;
+      devices[result[result_index].id].status_topic = result[result_index].status_topic;
+      devices[result[result_index].id].payload_on = result[result_index].payload_on;
+      devices[result[result_index].id].payload_off = result[result_index].payload_off;
     }
 
     // Subscribtion can only be done from within the MySQL query
@@ -173,27 +140,25 @@ app.use(express.static(__dirname + '/public'));
 app.get('/', checkAuth, function(req, res) {
   res.render('index.ejs', {
     // Passingthe variables
-    devices: devices
   });
 });
 
 app.get('/manage_devices', checkAuth, function(req, res) {
   res.render('manage_devices.ejs', {
-    // Passing the variables
-    devices: devices
+    // Passing variables
   });
 });
 
 app.get('/show_table', checkAuth, function(req, res) {
   res.render('show_table.ejs', {
-    // Passing the variables
-    devices: devices
+    // Passing variables
   });
 });
 
 app.post('/login', function (req, res) {
   var post = req.body;
   if (post.user === credentials.app_username && post.password === credentials.app_password) {
+    // FOR NOW ONLY ONE USER
     req.session.user_id = 1;
     res.redirect('/');
   } else {
@@ -269,54 +234,26 @@ var io = require('socket.io')(https_server);
 Websockets
 */
 
-function set_all_devices_states_ws() {
-  console.log("Setting the state of all devices through Websocket");
-  for (var device_index = 0; device_index < devices.length; device_index++){
-    var device = devices[device_index];
-
-    // Prepare data to be sent by WebSocket
-    var data = {topic: device.status_topic, payload: device.state};
-
-    // Sending to HTML
-    io.sockets.emit('indicator',data);
-  }
-}
-
-
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
-  console.log('A user connected');
-  set_all_devices_states_ws();
+  console.log('A user connected, sending the devices info by ws');
+  socket.emit('get_all_devices', devices);
+
 
   socket.on('disconnect', function(){
     console.log('user disconnected');
   });
 
-  socket.on("switch", function(data) {
-    console.log("Socket message: " + data.topic +": " + data.payload);
+  socket.on("update_back_end", function(JSON_message) {
+    console.log("Message from front end");
+    console.log(JSON_message);
 
-    /*
-    TWO OPTIONS HERE:
-    1) Make all devices respond to the "TOGGLE" payload
-    2) Handle the toggling here, i.e. send the payload opposite to the current state
-    /*
-    Normally, devices should respond to the TOGGLE payload
-    mqtt_client.publish(data.topic, data.payload);
-    */
-
-    // SHOULD BE REMOVED LATER
-    for (var device_index = 0; device_index < devices.length; device_index++){
-      var device = devices[device_index];
-      if(device.command_topic == data.topic) {
-        if(device.state == device.payload_on) {
-          mqtt_client.publish(data.topic, device.payload_off);
-        }
-        else {
-          mqtt_client.publish(data.topic, device.payload_on);
-        }
-      }
+    for(var id in JSON_message) {
+      //mqtt_client.publish(devices[id].command_topic, JSON_message[id].state);
     }
+
+
   });
 });
 
@@ -353,21 +290,24 @@ mqtt_client.on('message', function (topic, message) {
 
   state = message.toString();
 
-  // Remember the state of the device locally
-  // Necessary to send info to newly connected clients
-  // SHOULD BE A MORE EFFICIENT WAY TO FIND THE DEVICE
+  // Find all devices with the given status topic
   for (var device_index = 0; device_index < devices.length; device_index++){
     var device = devices[device_index];
     if(device.status_topic == topic) {
+
+      // Save the state of the device locally
       devices[device_index].state = state;
+
+      // Create and send a JSON message to the front end
+      console.log("Sending state by websocket");
+      JSON_message = {};
+      JSON_message.id = devices[device_index].id;
+      JSON_message.state = state;
+      io.sockets.emit('update_devices',JSON_message);
+
     }
   }
 
-  // Send data through websockets
-  console.log("Sending state by websocket: " + topic + ": " +state);
-  var data = {topic: topic, payload: state};
-  io.sockets.emit('indicator',data);
-
-
+  // COULD THINK OF FINDING THE ID OF ALL DEVICES WITH THE GIVEN STATUS TOPIC
 
 });
