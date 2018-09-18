@@ -1,5 +1,60 @@
 var socket = io();
-var devices;
+var devices = {};
+
+function get_device_image_src(id){
+
+  var device_image_src;
+
+  // SHOULD PROBABLY CHECK IF THOS EXISTS
+
+  switch (devices[id].type) {
+    case "light":
+      if(devices[id].state == devices[id].payload_on) {
+        device_image_src = "images/devices/light_on.svg";
+      }
+      else {
+        device_image_src = "images/devices/light_off.svg";
+      }
+      break;
+    case "lock":
+      if(devices[id].state == devices[id].payload_on) {
+        device_image_src = "images/devices/lock_locked.svg";
+      }
+      else {
+        device_image_src = "images/devices/lock_unlocked.svg";
+      }
+      break;
+    case "climate":
+      if(devices[id].state == devices[id].payload_on) {
+        device_image_src = "images/devices/fan_on.svg";
+      }
+      else {
+        device_image_src = "images/devices/fan_off.svg";
+      }
+      break;
+    default:
+      device_image_src = "images/devices/unknown.svg";
+  }
+
+  return device_image_src;
+}
+
+// Creates a handler for onclick events later
+function make_handler(id) {
+  return function() {
+    var outbound_JSON_message = {};
+    outbound_JSON_message[id] = {};
+
+    if(devices[id].state == devices[id].payload_on) {
+      outbound_JSON_message[id].state = devices[id].payload_off;
+    }
+    else {
+      outbound_JSON_message[id].state = devices[id].payload_on;
+    }
+    socket.emit('update_back_end', outbound_JSON_message);
+  };
+}
+
 
 socket.on('connect', function() {
   console.log('WS connected');
@@ -13,66 +68,50 @@ socket.on('disconnect', function(){
 });
 
 
+socket.on('update_devices', function (inbound_JSON_message) {
 
+  console.log('Received an update for one or more devices');
 
-socket.on('get_all_devices', function (devices_from_ws) {
-  // Manages messages received through websocket
-
-  devices = devices_from_ws;
-
-  console.log('Received list of all devices');
-
+  // Get the floorplan wrapper to add images
   var floorplan_wrapper = document.getElementById("floorplan_wrapper");
 
-  for(var id in devices) {
+  // Update the device according to the all entries of the JSON_message
+  for(var id in inbound_JSON_message) {
+    // Check if the device actually exists. if not create it
+    if (typeof devices[id] == 'undefined') {
 
-    var device_wrapper = document.createElement('div');
-    device_wrapper.className = "device_wrapper";
-    device_wrapper.style.left = String(devices[id].position_x) + "%";
-    device_wrapper.style.top = String(devices[id].position_y) + "%";
-    floorplan_wrapper.appendChild(device_wrapper);
+      // Create the new device and get as many info from the JSON_messager as possible
+      devices[id] = inbound_JSON_message[id];
 
-    var device_image = document.createElement('img');
-    device_image.className = "device_image";
+      // Create the image
+      var device_wrapper = document.createElement('div');
+      device_wrapper.id = String(id); // Not optimal
+      device_wrapper.className = "device_wrapper";
+      device_wrapper.style.left = String(devices[id].position_x) + "%";
+      device_wrapper.style.top = String(devices[id].position_y) + "%";
+      floorplan_wrapper.appendChild(device_wrapper);
 
-    // device image: EXTERNALIZE THIS FUNCTION IF POSSIBLE
-    switch (devices[id].type) {
-      case "light":
-        if(devices[id].state == devices[id].payload_on) device_image.src = "images/light_on.svg";
-        else device_image.src = "images/light_off.svg";
-        break;
-      case "lock":
-        if(devices[id].state == devices[id].payload_on) device_image.src = "images/lock.svg";
-        else device_image.src = "images/lock.svg";
-        break;
-      case "climate":
-        if(devices[id].state == devices[id].payload_on) device_image.src = "images/ac.svg";
-        else device_image.src = "images/ac.svg";
-        break;
-      default:
-        if(devices[id].state == devices[id].payload_on) device_image.src = "images/question-mark.svg";
-        else device_image.src = "images/question-mark.svg";
+      var device_image = document.createElement('img');
+      device_image.className = "device_image";
+      device_image.src = get_device_image_src(id);
+      device_image.onclick = make_handler(id);
+      device_wrapper.appendChild(device_image);
+    }
+    else {
+      // Update the members properties
+      for(var property in inbound_JSON_message[id]) {
+
+        // Check if the device has the given property
+        devices[id][property] = inbound_JSON_message[id][property];
+
+        // Set the image accordingly
+        var device_wrapper = document.getElementById(String(id));
+        var device_image = device_wrapper.getElementsByClassName("device_image")[0];
+        device_image.src = get_device_image_src(id);
+      }
+
     }
 
-    // Attach onclick PROBLEM HERE
-
-    device_image.onclick = function(){
-
-      var JSON_message = {};
-      JSON_message[id] = {};
-
-      if(devices[id].state == devices[id].payload_on) {
-        JSON_message[id].state = devices[id].payload_off;
-      }
-      else {
-        JSON_message[id].state = devices[id].payload_on;
-      }
-      socket.emit('update_back_end',JSON_message);
-    };
-
-
-    device_wrapper.appendChild(device_image);
 
   }
-
 });

@@ -238,7 +238,8 @@ io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
   console.log('A user connected, sending the devices info by ws');
-  socket.emit('get_all_devices', devices);
+  // This sends only to the connecting client
+  socket.emit('update_devices', devices);
 
 
   socket.on('disconnect', function(){
@@ -247,12 +248,10 @@ io.sockets.on('connection', function (socket) {
 
   socket.on("update_back_end", function(JSON_message) {
     console.log("Message from front end");
-    console.log(JSON_message);
 
     for(var id in JSON_message) {
-      //mqtt_client.publish(devices[id].command_topic, JSON_message[id].state);
+      mqtt_client.publish(devices[id].command_topic, JSON_message[id].state);
     }
-
 
   });
 });
@@ -282,32 +281,25 @@ function update_MySQL_states(status_topic, state) {
   });
 }
 
-mqtt_client.on('message', function (topic, message) {
-  // message is Buffer
+mqtt_client.on('message', function (status_topic, payload) {
 
+  // KEEP A LOCAL COPY
+  console.log("MQTT message arrived on " + status_topic + ": " + payload);
 
-  console.log("MQTT message arrived on " + topic + ": " + message);
+  // Find all devices with the matching status_topic
+  JSON_message = {};
+  for(var id in devices) {
+    if(devices[id].status_topic == status_topic) {
 
-  state = message.toString();
+      // Keep a local copy of the state
+      devices[id].state =  payload.toString();
 
-  // Find all devices with the given status topic
-  for (var device_index = 0; device_index < devices.length; device_index++){
-    var device = devices[device_index];
-    if(device.status_topic == topic) {
-
-      // Save the state of the device locally
-      devices[device_index].state = state;
-
-      // Create and send a JSON message to the front end
-      console.log("Sending state by websocket");
-      JSON_message = {};
-      JSON_message.id = devices[device_index].id;
-      JSON_message.state = state;
-      io.sockets.emit('update_devices',JSON_message);
-
+      // Create a JSON message to be sent
+      JSON_message[id] = {};
+      JSON_message[id].state = devices[id].state
     }
   }
 
-  // COULD THINK OF FINDING THE ID OF ALL DEVICES WITH THE GIVEN STATUS TOPIC
+  io.sockets.emit('update_devices',JSON_message);
 
 });
