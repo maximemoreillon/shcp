@@ -18,11 +18,57 @@
     <main>
       <div id="floorplan_wrapper" class="floorplan_wrapper">
         <img id="floorplan" class="floorplan" src="images/floorplan.svg">
+
+        <!-- Image of the new device -->
+
+        <!-- The modal for the new device -->
+        <div id="add_device_modal" class="device_modal">
+          <div> <!-- No idea why this div is neede -->
+            Add device <br>
+            <input id="add_position_x_input" type="hidden">
+            <input id="add_position_y_input" type="hidden">
+            <select id="add_type_select">
+              <option value="light">Light</option>
+              <option value="lock">Lock</option>
+              <option value="climate">Climate control</option>
+              <option value="other">Other</option>
+            </select><br>
+            <input type="text" id="add_status_topic_input" name="status_topic" placeholder="Status topic"><br>
+            <input type="text" id="add_command_topic_input" name="command_topic" placeholder="Command topic"><br>
+            <input type="text" id="add_payload_on_input" name="payload_on" placeholder="Payload ON"><br>
+            <input type="text" id="add_payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
+            <input type="button" id="add_submit_button" value="Submit" onclick="add_device()"><br>
+            <input type="button" id="add_cancel_button" value="Cancel" onclick="close_modals()">
+          </div>
+        </div>
+
+        <!-- The modal to remove a device -->
+        <div id="edit_device_modal" class="device_modal">
+          <div> <!-- No idea why this div is neede -->
+            Edit device <br>
+            <!-- No need for location, device already here -->
+            <select id="edit_type_select">
+              <option value="light">Light</option>
+              <option value="lock">Lock</option>
+              <option value="climate">Climate control</option>
+              <option value="other">Other</option>
+            </select><br>
+            <input type="text" id="edit_status_topic_input" name="status_topic" placeholder="Status topic"><br>
+            <input type="text" id="edit_command_topic_input" name="command_topic" placeholder="Command topic"><br>
+            <input type="text" id="edit_payload_on_input" name="payload_on" placeholder="Payload ON"><br>
+            <input type="text" id="edit_payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
+            <input type="button" id="edit_submit_button" value="Submit" onclick="edit_device()"><br>
+            <input type="button" id="edit_cancel_button" value="Cancel" onclick="close_modals()"><br>
+            <input type="button" id="edit_delete_button" value="Delete" onclick="delete_device()">
+          </div>
+        </div>
+
       </div>
     </main>
 
     <div class="controls">
       <!--<input type="button" value="Manage entities" onclick="window.location.href='manage_devices'">-->
+      <input type="image" src="images/icons/edit.svg" onclick="toggle_edit_mode(this)">
     </div>
 
     <footer>
@@ -33,7 +79,7 @@
 
   <!-- Modal for connection -->
   <div id="disconnected_modal" class="modal">
-    <div class="modal-content">
+    <div class="modal_content">
       NO CONNECTION
     </div>
   </div>

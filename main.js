@@ -88,6 +88,8 @@ con.connect(function(err) {
 
   console.log("MySQL Connected!");
 
+  // TODO:  WHERE TO DISCONNECT?
+
   // Retreve devices from table and Subscribe
   // WARNING: MQTT might not be connected yet so execute this within the connection function
   get_devices_from_MySQL_and_subscribe();
@@ -178,6 +180,7 @@ app.post('/add_device', checkAuth,function(req, res) {
   unsubscribe_all();
 
   // Inserting into MySQL according to POST request
+  // TODO: MAke the query better
   var sql = "INSERT INTO "+ misc.MySQL_table_name
   +" (type, position_x, position_y, command_topic, status_topic, payload_on, payload_off) VALUES ('"
   + req.body.type +"', '"
@@ -246,7 +249,7 @@ io.sockets.on('connection', function (socket) {
     console.log('user disconnected');
   });
 
-  socket.on("update_back_end", function(JSON_message) {
+  socket.on("front_to_mqtt", function(JSON_message) {
     console.log("Message from front end");
 
     for(var id in JSON_message) {
@@ -254,6 +257,31 @@ io.sockets.on('connection', function (socket) {
     }
 
   });
+
+
+  socket.on("add_devices_in_back_end", function(JSON_message) {
+    console.log("Message from front end");
+
+    //Find way to make a multiquery
+    for(var id in JSON_message) {
+      // Make a SQL query with the content of the JSON message
+    }
+
+  });
+
+
+  socket.on("delete_devices_in_back_end", function(JSON_message) {
+    console.log("Message from front end");
+
+    //Find way to make a multiquery
+    for(var id in JSON_message) {
+      // Make a SQL query with the content of the JSON message
+    }
+
+  });
+
+
+
 });
 
 

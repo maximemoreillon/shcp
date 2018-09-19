@@ -85,13 +85,22 @@ footer {
 	color: white;
 }
 
-.signature {
+.device_modal {
+  display: none;
+  position: absolute;
+	z-index: 10;
+  width: 300px;
+  padding: 10px;
 
+  background: white;
+  border: 3px solid black;
 }
+
 
 /* The Modal (background) */
 .modal {
-    display: flex;
+		display: none;
+
 		justify-content: center;
 		align-items: center;
 
@@ -107,7 +116,7 @@ footer {
 }
 
 /* Modal Content/Box */
-.modal-content {
+.modal_content {
     background-color: #fefefe;
     padding: 20px;
     border: 1px solid #888;
@@ -124,4 +133,13 @@ footer {
 	width: 200px;
 	height: 30px;
 	margin: 5px;
+}
+
+.controls {
+	text-align: center;
+}
+
+input[type="image"]{
+	width: 50px;
+	height: 50px;
 }
