@@ -29,6 +29,7 @@
           <div class="device_modal_inner"> <!-- No idea why this div is needed -->
 
             <select id="type_select" onchange="update_device_image(this)">
+              <option value="" selected disabled hidden>Type</option>
               <option value="light">Light</option>
               <option value="lock">Lock</option>
               <option value="climate">Climate control</option>
@@ -79,6 +80,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="js/handle_inbound_ws.js"></script>
   <script src="js/handle_outbound_ws.js"></script>
-
+  <script src="js/misc.js"></script>
 </body>
 </html>

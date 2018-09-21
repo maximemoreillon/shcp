@@ -86,17 +86,42 @@ footer {
 }
 
 .device_modal {
-  display: none;
-  position: absolute;
-	z-index: 10;
-  width: 300px;
-  padding: 10px;
 
-  background: white;
-  border: 3px solid black;
+	outline: 1px solid blue;
+
+	/* Hidden by default */
+  display: none;
+
+	/* Position: absolute allows JS to display it wherever */
+  position: absolute;
+
+	/* Be on top of devices */
+	z-index: 10;
+
+
+
+
+
 }
 
 .device_modal_inner {
+
+	outline: 1px solid red;
+
+	width: 300px;
+
+	position: absolute;
+	top: 20px;
+	left: 20px;
+
+
+  padding: 10px;
+
+	background: white;
+
+	text-align: center;
+
+
 
 }
 
