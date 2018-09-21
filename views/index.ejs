@@ -20,24 +20,28 @@
         <img id="floorplan" class="floorplan" src="images/floorplan.svg">
 
         <!-- Image of the new device -->
+        <div id="new_device_wrapper" class="device_wrapper">
+          <img id="new_device_image" class="device_image" src="images/devices/light_off.svg">
+        </div>
 
         <!-- The modal for the new device -->
         <div id="add_device_modal" class="device_modal">
           <div> <!-- No idea why this div is neede -->
             Add device <br>
-            <input id="add_position_x_input" type="hidden">
-            <input id="add_position_y_input" type="hidden">
-            <select id="add_type_select">
+
+            <select id="add_type_select" onchange="update_new_device_image(this)">
               <option value="light">Light</option>
               <option value="lock">Lock</option>
               <option value="climate">Climate control</option>
               <option value="other">Other</option>
             </select><br>
+            <input type="text" id="add_position_x_input" name="position_x">
+            <input type="text" id="add_position_y_input" name="position_y">
             <input type="text" id="add_status_topic_input" name="status_topic" placeholder="Status topic"><br>
             <input type="text" id="add_command_topic_input" name="command_topic" placeholder="Command topic"><br>
             <input type="text" id="add_payload_on_input" name="payload_on" placeholder="Payload ON"><br>
             <input type="text" id="add_payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
-            <input type="button" id="add_submit_button" value="Submit" onclick="add_device()"><br>
+            <input type="button" id="add_submit_button" value="Submit" onclick="add_device_ws()"><br>
             <input type="button" id="add_cancel_button" value="Cancel" onclick="close_modals()">
           </div>
         </div>
@@ -46,7 +50,8 @@
         <div id="edit_device_modal" class="device_modal">
           <div> <!-- No idea why this div is neede -->
             Edit device <br>
-            <!-- No need for location, device already here -->
+            <!-- No need for location, device already here, but need ID for delete-->
+            <input type="hidden" id="edit_id_input" name="id" ><br>
             <select id="edit_type_select">
               <option value="light">Light</option>
               <option value="lock">Lock</option>
@@ -57,9 +62,9 @@
             <input type="text" id="edit_command_topic_input" name="command_topic" placeholder="Command topic"><br>
             <input type="text" id="edit_payload_on_input" name="payload_on" placeholder="Payload ON"><br>
             <input type="text" id="edit_payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
-            <input type="button" id="edit_submit_button" value="Submit" onclick="edit_device()"><br>
+            <input type="button" id="edit_submit_button" value="Submit" onclick="edit_device_ws()"><br>
             <input type="button" id="edit_cancel_button" value="Cancel" onclick="close_modals()"><br>
-            <input type="button" id="edit_delete_button" value="Delete" onclick="delete_device()">
+            <input type="button" id="edit_delete_button" value="Delete" onclick="delete_device_ws()">
           </div>
         </div>
 
@@ -86,7 +91,8 @@
 
   <!-- JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-  <script src="js/handle_ws.js"></script>
+  <script src="js/handle_inbound_ws.js"></script>
+  <script src="js/handle_outbound_ws.js"></script>
 
 </body>
 </html>

@@ -25,6 +25,7 @@ con.connect(function(err) {
   // Creating new table
   var sql = "CREATE TABLE "+ misc.MySQL_table_name + " ("
   + "id INT AUTO_INCREMENT PRIMARY KEY, "
+  + "state VARCHAR(255), "
   + "type VARCHAR(255), "
   + "position_x VARCHAR(255), "
   + "position_y VARCHAR(255), "

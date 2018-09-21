@@ -1,1 +1,1 @@
-exports.MySQL_table_name = "entities_v4";
+exports.MySQL_table_name = "devices";

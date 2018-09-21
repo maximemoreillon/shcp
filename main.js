@@ -12,8 +12,6 @@ var credentials = require('./credentials');
 var misc = require('./misc');
 var routing = require("./routing");
 
-
-
 // Array containign all the devices, populated by a MySQL DB
 var devices;
 
@@ -43,32 +41,40 @@ function unsubscribe_all(){
   }
 }
 
+
+function get_devices_from_MySQL_query_results(result){
+
+
+  devices = {};
+
+  for (var result_index = 0; result_index < result.length; result_index++){
+
+    devices[result[result_index].id] = {};
+
+    for(property in result[result_index]) {
+      if(property != 'id'){
+        devices[result[result_index].id][property] = result[result_index][property]
+      }
+    }
+  }
+
+  return devices;
+}
+
 // Configuration of MySQL
 function get_devices_from_MySQL_and_subscribe (){
   // WHERE TO PUT THIS??
-  console.log("Refreshing devices from MySQL");
-  con.query("SELECT * FROM " + misc.MySQL_table_name, function (err, result, fields) {
-    if (err) throw err;
+  console.log("get_devices_from_MySQL_and_subscribe");
 
-    // Extract all results to local variable
-    //{1:{topic:banana,payload:roger},2:{}}
+  con.query("SELECT * FROM "+misc.MySQL_table_name, function (error, result, fields) {
+    if (error) throw error;
 
-    devices = {};
-    for (var result_index = 0; result_index < result.length; result_index++){
-      devices[result[result_index].id] = {};
-      devices[result[result_index].id].type = result[result_index].type;
-      devices[result[result_index].id].state = "UNKNOWN";
-      devices[result[result_index].id].position_x = result[result_index].position_x;
-      devices[result[result_index].id].position_y = result[result_index].position_y;
-      devices[result[result_index].id].command_topic = result[result_index].command_topic;
-      devices[result[result_index].id].status_topic = result[result_index].status_topic;
-      devices[result[result_index].id].payload_on = result[result_index].payload_on;
-      devices[result[result_index].id].payload_off = result[result_index].payload_off;
-    }
+    devices = get_devices_from_MySQL_query_results(result);
 
     // Subscribtion can only be done from within the MySQL query
     // Otherwise the device array is not populated yet
     subscribe_all();
+
 
   });
 }
@@ -86,7 +92,7 @@ var con = mysql.createConnection({
 con.connect(function(err) {
   if (err) throw err;
 
-  console.log("MySQL Connected!");
+  console.log("MySQL Connected");
 
   // TODO:  WHERE TO DISCONNECT?
 
@@ -136,24 +142,13 @@ app.use(bodyParser.urlencoded({
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
 
+/////////////
+// Routing //
+/////////////
 
-// Respond to requests
-// index page
 app.get('/', checkAuth, function(req, res) {
   res.render('index.ejs', {
     // Passingthe variables
-  });
-});
-
-app.get('/manage_devices', checkAuth, function(req, res) {
-  res.render('manage_devices.ejs', {
-    // Passing variables
-  });
-});
-
-app.get('/show_table', checkAuth, function(req, res) {
-  res.render('show_table.ejs', {
-    // Passing variables
   });
 });
 
@@ -173,115 +168,122 @@ app.get('/logout', function (req, res) {
   res.redirect('/');
 });
 
-app.post('/add_device', checkAuth,function(req, res) {
-
-  // unsubscribe from all
-  // WARNING:  Could simply subscribe to the new topic...
-  unsubscribe_all();
-
-  // Inserting into MySQL according to POST request
-  // TODO: MAke the query better
-  var sql = "INSERT INTO "+ misc.MySQL_table_name
-  +" (type, position_x, position_y, command_topic, status_topic, payload_on, payload_off) VALUES ('"
-  + req.body.type +"', '"
-  + req.body.position_x + "', '"
-  + req.body.position_y + "', '"
-  + req.body.command_topic + "','"
-  + req.body.status_topic + "','"
-  + req.body.payload_on + "','"
-  + req.body.payload_off + "');";
-
-
-  con.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log("New device added");
-
-    // Get the new list of devices with subscribe embedded inside
-    get_devices_from_MySQL_and_subscribe();
-
-  });
-
-  res.redirect('/manage_devices');
-
-});
-
-
-app.post('/delete_device',function(req, res) {
-
-  unsubscribe_all();
-
-  console.log("Deleting device ID no " + req.body.id);
-  var sql = "DELETE FROM "+misc.MySQL_table_name+" WHERE id = '"+req.body.id+"'";
-  con.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log("Number of records deleted: " + result.affectedRows);
-
-    // Get the new list of devices with subscribe embedded inside
-    get_devices_from_MySQL_and_subscribe();
-  });
-
-  res.redirect('/manage_devices');
-
-});
 
 // Start the server
 var https_server = https.createServer(ssl_options,app)
 https_server.listen(8080);
-console.log('Server started');
 
 // Start websocket
 var io = require('socket.io')(https_server);
 
 
-/*
-Websockets
-*/
+////////////////
+// Websockets //
+////////////////
 
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
   console.log('A user connected, sending the devices info by ws');
+
   // This sends only to the connecting client
-  socket.emit('update_devices', devices);
+  socket.emit('create_all_devices', devices);
 
 
   socket.on('disconnect', function(){
     console.log('user disconnected');
   });
 
-  socket.on("front_to_mqtt", function(JSON_message) {
-    console.log("Message from front end");
 
-    for(var id in JSON_message) {
-      mqtt_client.publish(devices[id].command_topic, JSON_message[id].state);
+
+  socket.on("add_devices_in_back_end", function(inbound_JSON_message) {
+    console.log("add_devices_in_back_end");
+
+    // TODO: MAKE THIS A multiquery
+    for(var id in inbound_JSON_message) {
+
+      var query = con.query('INSERT INTO '+misc.MySQL_table_name+' SET ?;', [inbound_JSON_message[id]], function (error, results, fields) {
+        if (error) throw error;
+
+        // Add the device to the local array
+        var new_device_id = results.insertId;
+        devices[new_device_id] = inbound_JSON_message[id];
+
+
+        // Send the new device to the front end for update
+        var outbound_JSON_message = {};
+        outbound_JSON_message[new_device_id] = devices[new_device_id];
+        io.emit('add_devices_in_front_end', outbound_JSON_message);
+
+        // Subscribe MQTT
+        mqtt_client.subscribe(devices[new_device_id].status_topic);
+      });
     }
 
   });
 
 
-  socket.on("add_devices_in_back_end", function(JSON_message) {
-    console.log("Message from front end");
+  socket.on("delete_devices_in_back_end", function(inbound_JSON_message) {
+    console.log("delete_devices_in_back_end");
 
-    //Find way to make a multiquery
-    for(var id in JSON_message) {
+    var outbound_JSON_message = {};
+
+    // TODO: Find way to make a multiquery
+    for(var id in inbound_JSON_message) {
       // Make a SQL query with the content of the JSON message
+
+      var query = con.query('DELETE FROM '+misc.MySQL_table_name+' WHERE id=?;', [id], function (error, results, fields) {
+        if (error) throw error;
+
+        // Unsubscribe MQTT
+        mqtt_client.unsubscribe(devices[id].status_topic);
+
+        // Tell the front end to delete the device
+        outbound_JSON_message[id] = devices[id];
+
+        // Delete local variable
+        delete devices[id];
+      });
     }
 
+    io.emit('delete_devices_in_front_end',outbound_JSON_message);
   });
 
+  socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
 
-  socket.on("delete_devices_in_back_end", function(JSON_message) {
-    console.log("Message from front end");
+    console.log("edit_devices_in_back_end");
 
-    //Find way to make a multiquery
-    for(var id in JSON_message) {
-      // Make a SQL query with the content of the JSON message
+    unsubscribe_all();
+
+    for(var id in inbound_JSON_message) {
+
+      // Update the database
+      // TODO: all in one query
+      // TODO: CHeck if the update was successful
+      var query = con.query('UPDATE '+misc.MySQL_table_name+' SET ?;', [inbound_JSON_message[id]], function (error, results, fields) {
+        if (error) throw error;
+      });
+
+      // Update local variable
+      for(var property in inbound_JSON_message[id]){
+        devices[id][property] = inbound_JSON_message[id][property];
+      }
     }
 
+    subscribe_all();
+
+    // Simply fprward the message to everyone
+    io.emit('edit_devices_in_front_end', inbound_JSON_message);
   });
 
+  socket.on("front_to_mqtt", function(inbound_JSON_message) {
 
+    console.log("front_to_mqtt");
 
+    for(var id in inbound_JSON_message) {
+      mqtt_client.publish(inbound_JSON_message[id].command_topic, inbound_JSON_message[id].state);
+    }
+  });
 });
 
 
@@ -295,39 +297,37 @@ mqtt_client.on('connect', function () {
 });
 
 
-function update_MySQL_states(status_topic, state) {
-  // Update the state of the device in the DB
-  // WARNING: ASYNC
-
-  var sql = "UPDATE "+misc.MySQL_table_name
-  +" SET state = '"+ state
-  +"' WHERE status_topic = '"+status_topic+"'";
-
-  con.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log("Updated state of device in MySQL with status topic: " + status_topic);
-  });
-}
-
 mqtt_client.on('message', function (status_topic, payload) {
 
-  // KEEP A LOCAL COPY
   console.log("MQTT message arrived on " + status_topic + ": " + payload);
 
-  // Find all devices with the matching status_topic
+
+  // TODO: clean up
+
+  // Translate the MQTT message into JSON message
   JSON_message = {};
   for(var id in devices) {
     if(devices[id].status_topic == status_topic) {
-
-      // Keep a local copy of the state
-      devices[id].state =  payload.toString();
-
-      // Create a JSON message to be sent
       JSON_message[id] = {};
-      JSON_message[id].state = devices[id].state
+      JSON_message[id].state = payload.toString();
+      JSON_message[id].status_topic = devices[id].status_topic
     }
   }
 
-  io.sockets.emit('update_devices',JSON_message);
+  // Update the database
+  for(var id in JSON_message) {
+
+    var query = con.query('UPDATE '+misc.MySQL_table_name+' SET ?;', [JSON_message[id]], function (error, results, fields) {
+      if (error) throw error;
+
+    });
+
+    for(var property in JSON_message[id]){
+      devices[id][property] = JSON_message[id][property];
+    }
+  }
+
+  // Update the front end
+  io.sockets.emit('edit_devices_in_front_end', JSON_message);
 
 });
