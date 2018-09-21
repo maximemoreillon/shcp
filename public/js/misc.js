@@ -197,9 +197,12 @@ function open_device_modal(evt) {
 }
 
 function restore_device_image() {
+
+
   var device_id = id_input.value;
 
-  if(device_id != "new_device") {
+
+  if(device_id != "new_device" && device_id != '') {
     // Updates the new image when the select changes
     var device = document.getElementById(device_id);
     var device_image = device.getElementsByClassName("device_image")[0];
