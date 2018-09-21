@@ -26,17 +26,16 @@
 
         <!-- The modal for the new device -->
         <div id="add_device_modal" class="device_modal">
-          <div> <!-- No idea why this div is neede -->
+          <div class="device_modal_inner"> <!-- No idea why this div is neede -->
             Add device <br>
-
             <select id="add_type_select" onchange="update_new_device_image(this)">
               <option value="light">Light</option>
               <option value="lock">Lock</option>
               <option value="climate">Climate control</option>
               <option value="other">Other</option>
             </select><br>
-            <input type="text" id="add_position_x_input" name="position_x">
-            <input type="text" id="add_position_y_input" name="position_y">
+            <input type="hidden" id="add_position_x_input" name="position_x">
+            <input type="hidden" id="add_position_y_input" name="position_y">
             <input type="text" id="add_status_topic_input" name="status_topic" placeholder="Status topic"><br>
             <input type="text" id="add_command_topic_input" name="command_topic" placeholder="Command topic"><br>
             <input type="text" id="add_payload_on_input" name="payload_on" placeholder="Payload ON"><br>
@@ -48,9 +47,8 @@
 
         <!-- The modal to remove a device -->
         <div id="edit_device_modal" class="device_modal">
-          <div> <!-- No idea why this div is neede -->
+          <div class="device_modal_inner"> <!-- No idea why this div is neede -->
             Edit device <br>
-            <!-- No need for location, device already here, but need ID for delete-->
             <input type="hidden" id="edit_id_input" name="id" ><br>
             <select id="edit_type_select">
               <option value="light">Light</option>
@@ -58,6 +56,7 @@
               <option value="climate">Climate control</option>
               <option value="other">Other</option>
             </select><br>
+            <!-- No need for location, device already here, but need ID for delete-->
             <input type="text" id="edit_status_topic_input" name="status_topic" placeholder="Status topic"><br>
             <input type="text" id="edit_command_topic_input" name="command_topic" placeholder="Command topic"><br>
             <input type="text" id="edit_payload_on_input" name="payload_on" placeholder="Payload ON"><br>

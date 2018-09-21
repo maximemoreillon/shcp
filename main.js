@@ -204,12 +204,20 @@ io.sockets.on('connection', function (socket) {
 
     for(var id in inbound_JSON_message) {
 
-      // TODO: MAKE THIS A multiquery
-      var query = con.query('INSERT INTO '+misc.MySQL_table_name+' SET ?;', [inbound_JSON_message[id]], function (error, results, fields) {
+      /*
+      var post  = {id: 1, title: 'Hello MySQL'};
+      var query = connection.query('INSERT INTO posts SET ?', post, function (error, results, fields) {
+        if (error) throw error;
+        // Neat!
+      });
+      console.log(query.sql); // INSERT INTO posts SET `id` = 1, `title` = 'Hello MySQL'
+      */
+
+      var query = con.query('INSERT INTO ?? SET ?;', [misc.MySQL_table_name, inbound_JSON_message[id]], function (error, results, fields) {
         if (error) throw error;
 
+        console.log(query.sql);
 
-        // THIS SHOULD PROBABLY NOT BE INSIDE THE QUERY
 
         // Add the device to the local array
         var new_device_id = results.insertId;
@@ -233,34 +241,25 @@ io.sockets.on('connection', function (socket) {
 
     unsubscribe_all();
 
-    var outbound_JSON_message = {};
+    ids = Object.keys(inbound_JSON_message);
 
+    // Achieved using a multi query
+    var query = con.query('DELETE FROM ?? WHERE id IN ( ? );', [misc.MySQL_table_name, ids], function (error, results, fields) {
+      if (error) throw error;
 
-    for(var id in inbound_JSON_message) {
+      for(id in inbound_JSON_message){
+        delete devices[id];
+      }
 
-      // TODO: Find way to make a multiquery
-      var query = con.query('DELETE FROM '+misc.MySQL_table_name+' WHERE id=?;', [id], function (error, results, fields) {
-        if (error) throw error;
-
-
-      });
-
-      // Tell the front end to delete the device
-      outbound_JSON_message[id] = devices[id];
-
-      // Delete local variable
-      delete devices[id];
-    }
-
-
-    io.emit('delete_devices_in_front_end', outbound_JSON_message);
-
-    subscribe_all();
+      io.emit('delete_devices_in_front_end', inbound_JSON_message);
+      subscribe_all();
+    });
   });
 
   socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
 
     console.log("edit_devices_in_back_end");
+    console.log(inbound_JSON_message);
 
     unsubscribe_all();
 
@@ -269,8 +268,10 @@ io.sockets.on('connection', function (socket) {
       // Update the database
       // TODO: all in one query
       // TODO: CHeck if the update was successful
-      var query = con.query('UPDATE '+misc.MySQL_table_name+' SET ?;', [inbound_JSON_message[id]], function (error, results, fields) {
+      // IT SEEMS LIKE THE ID IS MISSING
+      var query = con.query('UPDATE ?? SET ? WHERE id=?;', [misc.MySQL_table_name, inbound_JSON_message[id], id], function (error, results, fields) {
         if (error) throw error;
+        console.log(query.sql);
       });
 
       // Update local variable
@@ -327,7 +328,7 @@ mqtt_client.on('message', function (status_topic, payload) {
   // Update the database
   for(var id in JSON_message) {
 
-    var query = con.query('UPDATE '+misc.MySQL_table_name+' SET ?;', [JSON_message[id]], function (error, results, fields) {
+    var query = con.query('UPDATE ?? SET ? WHERE id=?;', [misc.MySQL_table_name, JSON_message[id], id], function (error, results, fields) {
       if (error) throw error;
 
     });
