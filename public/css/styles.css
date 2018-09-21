@@ -87,8 +87,6 @@ footer {
 
 .device_modal {
 
-	outline: 1px solid blue;
-
 	/* Hidden by default */
   display: none;
 
@@ -98,17 +96,12 @@ footer {
 	/* Be on top of devices */
 	z-index: 10;
 
-
-
-
-
 }
 
 .device_modal_inner {
 
-	outline: 1px solid red;
 
-	width: 300px;
+	width: 200px;
 
 	position: absolute;
 	top: 20px;
@@ -121,8 +114,15 @@ footer {
 
 	text-align: center;
 
+	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 
 
+
+}
+
+.device_modal_inner input[type="text"], .device_modal_inner select {
+	width: 80%;
+	margin: 5px;
 }
 
 
