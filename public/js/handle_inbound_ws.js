@@ -180,6 +180,7 @@ socket.on('delete_devices_in_front_end', function (inbound_JSON_message) {
     var element = document.getElementById(id);
     element.parentNode.removeChild(element);
   }
+
 });
 
 

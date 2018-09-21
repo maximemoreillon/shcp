@@ -199,11 +199,17 @@ io.sockets.on('connection', function (socket) {
   socket.on("add_devices_in_back_end", function(inbound_JSON_message) {
     console.log("add_devices_in_back_end");
 
-    // TODO: MAKE THIS A multiquery
+    var outbound_JSON_message = {};
+
+
     for(var id in inbound_JSON_message) {
 
+      // TODO: MAKE THIS A multiquery
       var query = con.query('INSERT INTO '+misc.MySQL_table_name+' SET ?;', [inbound_JSON_message[id]], function (error, results, fields) {
         if (error) throw error;
+
+
+        // THIS SHOULD PROBABLY NOT BE INSIDE THE QUERY
 
         // Add the device to the local array
         var new_device_id = results.insertId;
@@ -211,7 +217,6 @@ io.sockets.on('connection', function (socket) {
 
 
         // Send the new device to the front end for update
-        var outbound_JSON_message = {};
         outbound_JSON_message[new_device_id] = devices[new_device_id];
         io.emit('add_devices_in_front_end', outbound_JSON_message);
 
@@ -226,27 +231,31 @@ io.sockets.on('connection', function (socket) {
   socket.on("delete_devices_in_back_end", function(inbound_JSON_message) {
     console.log("delete_devices_in_back_end");
 
+    unsubscribe_all();
+
     var outbound_JSON_message = {};
 
-    // TODO: Find way to make a multiquery
-    for(var id in inbound_JSON_message) {
-      // Make a SQL query with the content of the JSON message
 
+    for(var id in inbound_JSON_message) {
+
+      // TODO: Find way to make a multiquery
       var query = con.query('DELETE FROM '+misc.MySQL_table_name+' WHERE id=?;', [id], function (error, results, fields) {
         if (error) throw error;
 
-        // Unsubscribe MQTT
-        mqtt_client.unsubscribe(devices[id].status_topic);
 
-        // Tell the front end to delete the device
-        outbound_JSON_message[id] = devices[id];
-
-        // Delete local variable
-        delete devices[id];
       });
+
+      // Tell the front end to delete the device
+      outbound_JSON_message[id] = devices[id];
+
+      // Delete local variable
+      delete devices[id];
     }
 
-    io.emit('delete_devices_in_front_end',outbound_JSON_message);
+
+    io.emit('delete_devices_in_front_end', outbound_JSON_message);
+
+    subscribe_all();
   });
 
   socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
@@ -270,10 +279,11 @@ io.sockets.on('connection', function (socket) {
       }
     }
 
-    subscribe_all();
-
     // Simply fprward the message to everyone
     io.emit('edit_devices_in_front_end', inbound_JSON_message);
+
+    // Subscribe to all new topics
+    subscribe_all();
   });
 
   socket.on("front_to_mqtt", function(inbound_JSON_message) {
