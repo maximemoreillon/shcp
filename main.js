@@ -321,7 +321,6 @@ mqtt_client.on('message', function (status_topic, payload) {
     if(devices[id].status_topic == status_topic) {
       JSON_message[id] = {};
       JSON_message[id].state = payload.toString();
-      JSON_message[id].status_topic = devices[id].status_topic
     }
   }
 
@@ -330,6 +329,7 @@ mqtt_client.on('message', function (status_topic, payload) {
 
     var query = con.query('UPDATE ?? SET ? WHERE id=?;', [misc.MySQL_table_name, JSON_message[id], id], function (error, results, fields) {
       if (error) throw error;
+      console.log(query.sql);
 
     });
 
