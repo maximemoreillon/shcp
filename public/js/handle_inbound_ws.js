@@ -3,10 +3,10 @@ var devices = {};
 var mode = "use";
 
 
-function close_modals(){
-  document.getElementById('add_device_modal').style.display = "none";
-  document.getElementById('edit_device_modal').style.display = "none";
-  document.getElementById('new_device_wrapper').style.display = "none";
+function close_modal(){
+  document.getElementById('device_modal').style.display = "none";
+  document.getElementById('new_device').style.display = "none";
+  restore_device_image();
 }
 
 function toggle_edit_mode(button){
@@ -17,7 +17,7 @@ function toggle_edit_mode(button){
   else if(mode == "edit"){
     mode="use";
     button.src = "images/icons/edit.svg";
-    close_modals();
+    close_modal();
   }
 }
 
@@ -84,7 +84,7 @@ window.onload = function(){
   var floorplan = document.getElementById('floorplan');
 
   floorplan.addEventListener('click',function(evt) {
-    open_add_device_modal(evt);
+    open_device_modal(evt);
   });
 }
 
@@ -112,24 +112,30 @@ function make_handler_for_onclick(id) {
     }
     else if(mode == "edit") {
 
-      close_modals();
+      // don't show the new device since it's an edit of an existing one
+      document.getElementById('new_device').style.display = "none";
 
       var floorplan = document.getElementById('floorplan');
-      var edit_device_modal = document.getElementById('edit_device_modal');
+      var device_modal = document.getElementById('device_modal');
 
       // Display the modal
-      edit_device_modal.style.display = "flex";
-      edit_device_modal.style.left = devices[id].position_x.toString() + "%";
-      edit_device_modal.style.top = devices[id].position_y.toString() + "%";
+      device_modal.style.display = "flex";
+      device_modal.style.left = devices[id].position_x.toString() + "%";
+      device_modal.style.top = devices[id].position_y.toString() + "%";
 
       // Fill the "form"
-      // THOSE ARE NEVER DEFINED
-      edit_id_input.value = id;
-      edit_type_select.value = devices[id].type;
-      edit_status_topic_input.value = devices[id].status_topic;
-      edit_command_topic_input.value = devices[id].command_topic;
-      edit_payload_on_input.value = devices[id].payload_on;
-      edit_payload_off_input.value = devices[id].payload_off;
+      // TODO: THOSE ARE NEVER DEFINED
+      id_input.value = id;
+      type_select.value = devices[id].type;
+      status_topic_input.value = devices[id].status_topic;
+      command_topic_input.value = devices[id].command_topic;
+      payload_on_input.value = devices[id].payload_on;
+      payload_off_input.value = devices[id].payload_off;
+
+      // Manage buttons visibility
+      add_button.style.display="none";
+      delete_button.style.display="initial";
+      submit_button.style.display="initial";
 
     }
   };
@@ -250,45 +256,77 @@ function get_mouse_pos_percent(element,evt) {
   };
 }
 
-function open_add_device_modal(evt) {
-
-  close_modals();
+function open_device_modal(evt) {
 
   if(mode=="edit"){
 
     // Getting elements to work with
     var floorplan = document.getElementById('floorplan');
-    var add_device_modal = document.getElementById('add_device_modal');
-    var add_position_x_input = document.getElementById("add_position_x_input");
-    var add_position_y_input = document.getElementById("add_position_y_input");
-    var new_device_wrapper = document.getElementById("new_device_wrapper");
+    var device_modal = document.getElementById('device_modal');
+    var position_x_input = document.getElementById("position_x_input");
+    var position_y_input = document.getElementById("position_y_input");
+    var new_device = document.getElementById("new_device");
     var new_device_image = document.getElementById("new_device_image");
-    var add_type_select = document.getElementById("add_type_select");
+    var type_select = document.getElementById("type_select");
 
     var mouse_pos = get_mouse_pos_percent(floorplan, evt);
 
-    // Display something where the device will be
-    new_device_wrapper.style.display = "block";
-    new_device_wrapper.style.left = mouse_pos.x.toString()+"%";
-    new_device_wrapper.style.top = mouse_pos.y.toString()+"%";
-
-    new_device_image.src=get_device_image_src_by_type(add_type_select.value);
-
-
     // Display the modal at the right location
-    add_device_modal.style.display = "flex";
-    add_device_modal.style.left = mouse_pos.x.toString() + "%";
-    add_device_modal.style.top = mouse_pos.y.toString() + "%";
+    device_modal.style.display = "flex";
+    device_modal.style.left = mouse_pos.x.toString() + "%";
+    device_modal.style.top = mouse_pos.y.toString() + "%";
 
     // Fill the input fields
-    add_position_x_input.value = mouse_pos.x;
-    add_position_y_input.value = mouse_pos.y;
+    position_x_input.value = mouse_pos.x;
+    position_y_input.value = mouse_pos.y;
+
+    id_input.value = "new_device";
+
+    // Clear the other input fields
+    type_select.value="light";
+    status_topic_input.value = "";
+    command_topic_input.value = "";
+    payload_on_input.value = "";
+    payload_off_input.value = "";
+
+
+    // Manage buttons visibility
+    add_button.style.display="initial";
+    delete_button.style.display="none";
+    submit_button.style.display="none";
+
+    // Display something where the device will be
+    new_device.style.display = "block";
+    new_device.style.left = mouse_pos.x.toString()+"%";
+    new_device.style.top = mouse_pos.y.toString()+"%";
+
+    new_device_image.src=get_device_image_src_by_type(type_select.value);
 
   }
 }
 
-function update_new_device_image(select) {
+function restore_device_image() {
+  var device_id = id_input.value;
+
+  if(device_id != "new_device") {
+    // Updates the new image when the select changes
+    var device = document.getElementById(device_id);
+    var device_image = device.getElementsByClassName("device_image")[0];
+
+    // BUG will set the image to off!
+    device_image.src = get_device_image_src(device_id);
+  }
+}
+
+
+function update_device_image(select) {
+
+  var device_id = id_input.value;
+
   // Updates the new image when the select changes
-  var new_device_image = document.getElementById("new_device_image");
-  new_device_image.src = get_device_image_src_by_type(select.value)
+  var device = document.getElementById(device_id);
+  var device_image = device.getElementsByClassName("device_image")[0];
+  device_image.src = get_device_image_src_by_type(select.value);
+
+
 }
