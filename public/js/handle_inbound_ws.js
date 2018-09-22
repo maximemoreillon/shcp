@@ -24,8 +24,8 @@ socket.on('add_devices_in_front_end', function (inbound_JSON_message) {
     var device_wrapper = document.createElement('div');
     device_wrapper.id = String(id); // Not optimal
     device_wrapper.className = "device_wrapper";
-    device_wrapper.style.left = String(devices[id].position_x) + "%";
-    device_wrapper.style.top = String(devices[id].position_y) + "%";
+    device_wrapper.style.left = String(devices[id].position.x) + "%";
+    device_wrapper.style.top = String(devices[id].position.y) + "%";
     floorplan_wrapper.appendChild(device_wrapper);
 
     var device_image = document.createElement('img');
@@ -54,6 +54,7 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
   // edit the device according to the all entries of the JSON_message
 
   console.log('edit_devices_in_front_end');
+  console.log(inbound_JSON_message);
 
   for(var id in inbound_JSON_message) {
     // edit the device's properties
@@ -61,11 +62,15 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
       devices[id][property] = inbound_JSON_message[id][property];
     }
 
+    console.log(devices[id]);
+
     // Set the image accordingly
     var device_wrapper = document.getElementById(id);
     var device_image = device_wrapper.getElementsByClassName("device_image")[0];
     device_image.src = get_device_image_src(id);
   }
+
+
 
 });
 
@@ -75,8 +80,15 @@ socket.on('create_all_devices', function (inbound_JSON_message) {
 
   console.log('create_all_devices');
 
-  // Destroy all devices
-  devices = {};
+  // remove all images, destroy all devices
+  for(var id in devices) {
+
+    delete devices[id];
+
+    var element = document.getElementById(id);
+    element.parentNode.removeChild(element);
+  }
+
 
   // Get the floorplan wrapper to add images
   var floorplan_wrapper = document.getElementById("floorplan_wrapper");
@@ -92,14 +104,16 @@ socket.on('create_all_devices', function (inbound_JSON_message) {
     var device_wrapper = document.createElement('div');
     device_wrapper.id = String(id); // Not optimal
     device_wrapper.className = "device_wrapper";
-    device_wrapper.style.left = String(devices[id].position_x) + "%";
-    device_wrapper.style.top = String(devices[id].position_y) + "%";
+    device_wrapper.style.left = String(devices[id].position.x) + "%";
+    device_wrapper.style.top = String(devices[id].position.y) + "%";
     floorplan_wrapper.appendChild(device_wrapper);
 
     var device_image = document.createElement('img');
     device_image.className = "device_image";
-    device_image.src = devices_icons[devices[id].type][devices[id].state];
+    device_image.src = get_device_image_src(id);
     device_image.onclick = make_handler_for_onclick(id);
     device_wrapper.appendChild(device_image);
   }
+
+  console.log(devices);
 });

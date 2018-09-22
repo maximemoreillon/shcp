@@ -11,8 +11,11 @@ function add_device_ws() {
   outbound_JSON_message[id] = {};
   outbound_JSON_message[id].state = "not_defined";
   outbound_JSON_message[id].type = type_select.value;
-  outbound_JSON_message[id].position_x = position_x_input.value;
-  outbound_JSON_message[id].position_y = position_y_input.value;
+
+  outbound_JSON_message[id].position = {};
+  outbound_JSON_message[id].position.x = position_x_input.value;
+  outbound_JSON_message[id].position.y = position_y_input.value;
+
   outbound_JSON_message[id].status_topic = status_topic_input.value;
   outbound_JSON_message[id].command_topic = command_topic_input.value;
   outbound_JSON_message[id].payload_on = payload_on_input.value;
@@ -56,6 +59,7 @@ function delete_device_ws() {
   outbound_JSON_message[id] = {};
 
   console.log("delete_devices_in_back_end");
+  console.log(outbound_JSON_message);
   socket.emit('delete_devices_in_back_end', outbound_JSON_message);
 
   close_modal();

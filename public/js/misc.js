@@ -109,6 +109,8 @@ function make_handler_for_onclick(id) {
       else {
         outbound_JSON_message[id].state = devices[id].payload_on;
       }
+      console.log('front_to_mqtt');
+      console.log(outbound_JSON_message);
       socket.emit('front_to_mqtt', outbound_JSON_message);
     }
     else if(mode == "edit") {
@@ -121,8 +123,8 @@ function make_handler_for_onclick(id) {
 
       // Display the modal
       device_modal.style.display = "flex";
-      device_modal.style.left = devices[id].position_x.toString() + "%";
-      device_modal.style.top = devices[id].position_y.toString() + "%";
+      device_modal.style.left = devices[id].position.x.toString() + "%";
+      device_modal.style.top = devices[id].position.y.toString() + "%";
 
       // Fill the "form"
       // TODO: THOSE ARE NEVER DEFINED

@@ -33,7 +33,9 @@ function subscribe_all(){
 
   console.log("Subscribing to all MQTT topics");
   for(var id in devices) {
-    mqtt_client.subscribe(devices[id].status_topic);
+    if(devices[id].status_topic != ""){
+      mqtt_client.subscribe(devices[id].status_topic);
+    }
   }
 }
 
@@ -175,8 +177,6 @@ io.sockets.on('connection', function (socket) {
 
     console.log("add_devices_in_back_end");
 
-
-
     MongoClient.connect(misc.MongoDB_URL, function(err, db) {
       if (err) throw err;
       var dbo = db.db(misc.MongoDB_DB_name);
@@ -211,40 +211,11 @@ io.sockets.on('connection', function (socket) {
       });
     });
 
-
-    // Old MySQL code
-    /*
-    for(var id in inbound_JSON_message) {
-
-      var outbound_JSON_message = {};
-
-      var query = MySQL_connection.query('INSERT INTO ?? SET ?;', [misc.MySQL_table_name, inbound_JSON_message[id]], function (error, results, fields) {
-        if (error) throw error;
-
-        console.log(query.sql);
-
-        // Add the device to the local array
-        var new_device_id = results.insertId;
-        devices[new_device_id] = inbound_JSON_message[id];
-
-        // Send the new device to the front end for update
-        outbound_JSON_message[new_device_id] = devices[new_device_id];
-        io.emit('add_devices_in_front_end', outbound_JSON_message);
-
-        // Subscribe MQTT
-        mqtt_client.subscribe(devices[new_device_id].status_topic);
-      });
-    }
-    */
-
   });
 
 
   socket.on("delete_devices_in_back_end", function(inbound_JSON_message) {
     console.log("delete_devices_in_back_end");
-
-
-
 
     MongoClient.connect(misc.MongoDB_URL, function(err, db) {
       if (err) throw err;
@@ -263,7 +234,7 @@ io.sockets.on('connection', function (socket) {
 
         unsubscribe_all();
 
-        // Update local variable
+        // THIS SHOULD BE DONE BASED ON DB RESULT
         for(id in inbound_JSON_message){
           delete devices[id];
         }
@@ -278,23 +249,6 @@ io.sockets.on('connection', function (socket) {
       });
     });
 
-
-    // Old MySQL code
-    /*
-    // Achieved using a multi query
-    var query = MySQL_connection.query('DELETE FROM ?? WHERE id IN ( ? );', [misc.MySQL_table_name, ids], function (error, results, fields) {
-      if (error) throw error;
-
-      // Update local variable
-      for(id in inbound_JSON_message){
-        delete devices[id];
-      }
-
-      // Update front end
-      io.emit('delete_devices_in_front_end', inbound_JSON_message);
-      subscribe_all();
-    });
-    */
   });
 
   socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
@@ -302,34 +256,43 @@ io.sockets.on('connection', function (socket) {
     console.log("edit_devices_in_back_end");
     console.log(inbound_JSON_message);
 
-    // Unsubscribe to all MQTT topics
-    unsubscribe_all();
-
-    // Old MySQL code
-    /*
-    // Update the database
-    // TODO: all in one query
+    // TODO: find way to make all ine one query
     for(var id in inbound_JSON_message) {
 
-      var query = MySQL_connection.query('UPDATE ?? SET ? WHERE id=?;', [misc.MySQL_table_name, inbound_JSON_message[id], id], function (error, results, fields) {
-        if (error) throw error;
-        console.log(query.sql);
+      MongoClient.connect(misc.MongoDB_URL, function(err, db) {
 
-        // Update local variable
-        for(var property in inbound_JSON_message[id]){
-          devices[id][property] = inbound_JSON_message[id][property];
-        }
+        if (err) throw err;
+        var dbo = db.db(misc.MongoDB_DB_name);
 
-        // Update all clients with the info
-        var outbound_JSON_message = {};
-        outbound_JSON_message[id] = inbound_JSON_message[id];
-        io.emit('edit_devices_in_front_end', outbound_JSON_message);
+        var query = { _id: ObjectID(id) };
+
+        var new_properties = {};
+        new_properties['$set'] = inbound_JSON_message[id]
+
+
+        dbo.collection(misc.MongoDB_collection_name).updateOne(query, new_properties, function(err, res) {
+          if (err) throw err;
+          console.log("1 document updated");
+
+          unsubscribe_all();
+
+          // update local variable
+          for(property in inbound_JSON_message[id]) {
+            devices[id][property] = inbound_JSON_message[id][property];
+          }
+
+          var outbound_JSON_message = {};
+          outbound_JSON_message[id] = inbound_JSON_message[id];
+          console.log("edit_devices_in_front_end");
+          console.log(outbound_JSON_message);
+          io.emit('edit_devices_in_front_end', outbound_JSON_message);
+
+          subscribe_all();
+
+          db.close();
+        });
       });
     }
-    */
-
-    // Subscribe to all new topics
-    subscribe_all();
   });
 
   socket.on("front_to_mqtt", function(inbound_JSON_message) {
@@ -340,7 +303,8 @@ io.sockets.on('connection', function (socket) {
       mqtt_client.publish(inbound_JSON_message[id].command_topic, inbound_JSON_message[id].state);
     }
   });
-});
+
+}); // end of socket on connect
 
 
 /*
@@ -358,7 +322,7 @@ mqtt_client.on('message', function (status_topic, payload) {
   console.log("MQTT message arrived on " + status_topic + ": " + payload);
 
   // Translate the MQTT message into JSON message
-  inbound_JSON_message = {};
+  var inbound_JSON_message = {};
 
   // Find the devices that have a matching MQTT status topic
   for(var id in devices) {
@@ -369,44 +333,57 @@ mqtt_client.on('message', function (status_topic, payload) {
   }
 
 
-  // Old MySQL code
-  /*
-  // Update the database
+
+
   for(var id in inbound_JSON_message) {
 
-    var query = MySQL_connection.query('UPDATE ?? SET ? WHERE id=?;', [misc.MySQL_table_name, inbound_JSON_message[id], id], function (error, results, fields) {
-      if (error) throw error;
-      console.log(query.sql);
+    MongoClient.connect(misc.MongoDB_URL, function(err, db) {
 
-      // Update the local variable
-      for(var property in inbound_JSON_message[id]){
-        devices[id][property] = inbound_JSON_message[id][property];
-      }
+      if (err) throw err;
+      var dbo = db.db(misc.MongoDB_DB_name);
 
-      // Update the front end
-      var outbound_JSON_message = {};
-      outbound_JSON_message[id] = inbound_JSON_message[id];
-      io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
+      var new_properties = {};
+      new_properties['$set'] = inbound_JSON_message[id];
 
+      var query = { _id: ObjectID(id) };
+
+      dbo.collection(misc.MongoDB_collection_name).updateOne(query, new_properties, function(err, res) {
+        if (err) throw err;
+        console.log("1 document updated");
+
+        // Update the local variable
+        for(var property in inbound_JSON_message[id]){
+          devices[id][property] = inbound_JSON_message[id][property];
+        }
+
+        // Update the front end
+        var outbound_JSON_message = {};
+        outbound_JSON_message[id] = inbound_JSON_message[id];
+        console.log("edit_devices_in_front_end");
+        console.log(outbound_JSON_message);
+        io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
+
+        db.close();
+      });
     });
   }
 
+
+  // Version without DB update
+  /*
+  for(var id in inbound_JSON_message) {
+    // Update the local variable
+    for(var property in inbound_JSON_message[id]){
+      devices[id][property] = inbound_JSON_message[id][property];
+    }
+
+    // Update the front end
+    var outbound_JSON_message = {};
+    outbound_JSON_message[id] = inbound_JSON_message[id];
+    console.log("edit_devices_in_front_end");
+    console.log(outbound_JSON_message);
+    io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
+  }
   */
 
-    // Version without database update
-    /*
-    for(var id in inbound_JSON_message) {
-
-      // Update the local variable
-      for(var property in inbound_JSON_message[id]){
-        devices[id][property] = inbound_JSON_message[id][property];
-      }
-
-      // Update the front end
-      var outbound_JSON_message = {};
-      outbound_JSON_message[id] = inbound_JSON_message[id];
-      io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
-
-    }
-    */
 });
