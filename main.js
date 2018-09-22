@@ -5,7 +5,11 @@ var expressSession = require('express-session')
 var bodyParser = require("body-parser");
 var mqtt = require('mqtt');
 var https = require('https');
-var mysql = require('mysql');
+var MongoDB = require('mongodb');
+var ObjectID = require('mongodb').ObjectID;
+var MongoClient = require('mongodb').MongoClient;
+
+
 
 // Custom modules
 var credentials = require('./credentials');
@@ -43,41 +47,31 @@ function unsubscribe_all(){
 }
 
 
-// Define MySQL connection
-var MySQL_connection = mysql.createConnection({
-  host: "localhost",
-  user: credentials.MySQL_username,
-  password: credentials.MySQL_password,
-  database: "home_automation"
-});
 
 
-// Connection to MySQL DB at startup to get all devices and store them in a local variable
-MySQL_connection.connect(function(err) {
+MongoClient.connect(misc.MongoDB_URL, function(err, db) {
   if (err) throw err;
+  var dbo = db.db(misc.MongoDB_DB_name);
+  dbo.collection(misc.MongoDB_collection_name).find({}).toArray(function(err, result) {
+    if (err) throw err;
 
-  console.log("MySQL Connected");
+    console.log("MongoDB query result:");
 
-  MySQL_connection.query("SELECT * FROM "+misc.MySQL_table_name, function (error, result, fields) {
-    if (error) throw error;
+    result.forEach(function(entry) {
+      var id = entry['_id'];
+      devices[id] = entry;
+      delete devices[id]['_id']; // Not clean
 
-    for (var result_index = 0; result_index < result.length; result_index++){
+    });
 
-      devices[result[result_index].id] = {};
+    // TODO: Update local variables
+    console.log(devices);
 
-      for(property in result[result_index]) {
-        // ID is stored in the DB but isn't part of the proeperties
-        if(property != 'id'){
-          devices[result[result_index].id][property] = result[result_index][property]
-        }
-      }
-    }
-
-    // Subscribtion can only be done from within the MySQL query
-    // Otherwise the device array is not populated yet
+    // subscribe all
     subscribe_all();
-  });
 
+    db.close();
+  });
 });
 
 
@@ -181,6 +175,45 @@ io.sockets.on('connection', function (socket) {
 
     console.log("add_devices_in_back_end");
 
+
+
+    MongoClient.connect(misc.MongoDB_URL, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db(misc.MongoDB_DB_name);
+
+      var new_devices = [];
+      for(id in inbound_JSON_message){
+        new_devices.push(inbound_JSON_message[id]);
+      }
+
+      dbo.collection(misc.MongoDB_collection_name).insertMany(new_devices, function(err, result) {
+        if (err) throw err;
+        console.log("Number of documents inserted: " + result.insertedCount);
+
+        // edit local variable
+        result.ops.forEach(function(entry) {
+          var id = entry['_id'];
+          devices[id] = entry;
+          delete devices[id]['_id']; // Not clean
+        });
+
+        console.log(devices);
+
+        // Send update to front End
+        // TODO: Send only the new devices
+        io.emit('add_devices_in_front_end', devices);
+
+        // subscribe to devices
+        // TODO: only subscribe to new ones
+        subscribe_all();
+
+        db.close();
+      });
+    });
+
+
+    // Old MySQL code
+    /*
     for(var id in inbound_JSON_message) {
 
       var outbound_JSON_message = {};
@@ -202,6 +235,7 @@ io.sockets.on('connection', function (socket) {
         mqtt_client.subscribe(devices[new_device_id].status_topic);
       });
     }
+    */
 
   });
 
@@ -209,10 +243,44 @@ io.sockets.on('connection', function (socket) {
   socket.on("delete_devices_in_back_end", function(inbound_JSON_message) {
     console.log("delete_devices_in_back_end");
 
-    unsubscribe_all();
 
-    ids = Object.keys(inbound_JSON_message);
 
+
+    MongoClient.connect(misc.MongoDB_URL, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db(misc.MongoDB_DB_name);
+
+      var ids = [];
+      Object.keys(inbound_JSON_message).forEach(function(entry) {
+        ids.push(ObjectID(entry));
+      });
+
+      var query = { _id: { $in: ids } };
+
+      dbo.collection(misc.MongoDB_collection_name).deleteMany( query , function(err, obj) {
+        if (err) throw err;
+        console.log(obj.result.n + " document(s) deleted");
+
+        unsubscribe_all();
+
+        // Update local variable
+        for(id in inbound_JSON_message){
+          delete devices[id];
+        }
+
+        // Send update to clients
+        io.emit('delete_devices_in_front_end', inbound_JSON_message);
+
+        // Suscribe to all mqtt
+        subscribe_all();
+
+        db.close();
+      });
+    });
+
+
+    // Old MySQL code
+    /*
     // Achieved using a multi query
     var query = MySQL_connection.query('DELETE FROM ?? WHERE id IN ( ? );', [misc.MySQL_table_name, ids], function (error, results, fields) {
       if (error) throw error;
@@ -226,6 +294,7 @@ io.sockets.on('connection', function (socket) {
       io.emit('delete_devices_in_front_end', inbound_JSON_message);
       subscribe_all();
     });
+    */
   });
 
   socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
@@ -236,6 +305,8 @@ io.sockets.on('connection', function (socket) {
     // Unsubscribe to all MQTT topics
     unsubscribe_all();
 
+    // Old MySQL code
+    /*
     // Update the database
     // TODO: all in one query
     for(var id in inbound_JSON_message) {
@@ -255,6 +326,7 @@ io.sockets.on('connection', function (socket) {
         io.emit('edit_devices_in_front_end', outbound_JSON_message);
       });
     }
+    */
 
     // Subscribe to all new topics
     subscribe_all();
@@ -296,6 +368,9 @@ mqtt_client.on('message', function (status_topic, payload) {
     }
   }
 
+
+  // Old MySQL code
+  /*
   // Update the database
   for(var id in inbound_JSON_message) {
 
@@ -315,6 +390,8 @@ mqtt_client.on('message', function (status_topic, payload) {
 
     });
   }
+
+  */
 
     // Version without database update
     /*

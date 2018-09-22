@@ -58,7 +58,6 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
   for(var id in inbound_JSON_message) {
     // edit the device's properties
     for(var property in inbound_JSON_message[id]) {
-      // TODO:  Check if the device has the given property
       devices[id][property] = inbound_JSON_message[id][property];
     }
 
@@ -99,7 +98,7 @@ socket.on('create_all_devices', function (inbound_JSON_message) {
 
     var device_image = document.createElement('img');
     device_image.className = "device_image";
-    device_image.src = get_device_image_src(id);
+    device_image.src = devices_icons[devices[id].type][devices[id].state];
     device_image.onclick = make_handler_for_onclick(id);
     device_wrapper.appendChild(device_image);
   }
