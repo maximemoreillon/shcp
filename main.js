@@ -31,8 +31,10 @@ function subscribe_all(){
 
   console.log("Subscribing to all MQTT topics");
   for(var id in devices) {
-    if(devices[id].status_topic != ""){
-      mqtt_client.subscribe(devices[id].status_topic);
+    if(typeof devices[id].status_topic !== 'undefined'){
+      if(devices[id].status_topic != ""){
+        mqtt_client.subscribe(devices[id].status_topic);
+      }
     }
   }
 }
@@ -182,20 +184,24 @@ io.sockets.on('connection', function (socket) {
       dbo.collection(misc.MongoDB_collection_name).insertMany(new_devices, function(err, result) {
         if (err) throw err;
 
+        var outbound_JSON_message = {};
+
         // edit local variable
         result.ops.forEach(function(entry) {
           var id = entry['_id'];
           devices[id] = entry;
           delete devices[id]['_id']; // Not clean
+
+          outbound_JSON_message[id] = devices[id];
         });
 
         // Send update to front End
-        // TODO: Send only the new devices
-        io.emit('add_devices_in_front_end', devices);
+        io.emit('add_devices_in_front_end', outbound_JSON_message);
 
-        // subscribe to devices
-        // TODO: only subscribe to new ones
+        // subscribe to MQTT topics
+        // TODO: Subscribe only to the new ones
         subscribe_all();
+
 
         db.close();
       });

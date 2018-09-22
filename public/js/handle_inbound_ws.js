@@ -62,8 +62,6 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
       devices[id][property] = inbound_JSON_message[id][property];
     }
 
-    console.log(devices[id]);
-
     // Set the image accordingly
     var device_wrapper = document.getElementById(id);
     var device_image = device_wrapper.getElementsByClassName("device_image")[0];
