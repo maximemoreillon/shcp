@@ -79,16 +79,16 @@ socket.on('create_all_devices', function (inbound_JSON_message) {
   // Create all devices
 
   console.log('create_all_devices');
+  console.log(inbound_JSON_message);
 
-  // remove all images, destroy all devices
+  // remove all images
   for(var id in devices) {
-
-    delete devices[id];
-
     var element = document.getElementById(id);
     element.parentNode.removeChild(element);
   }
 
+  //destroy all devices
+  devices = {};
 
   // Get the floorplan wrapper to add images
   var floorplan_wrapper = document.getElementById("floorplan_wrapper");

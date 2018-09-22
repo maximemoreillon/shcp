@@ -52,6 +52,9 @@ MongoClient.connect(misc.MongoDB_URL, function(err, db) {
   dbo.collection(misc.MongoDB_collection_name).find({}).toArray(function(err, result) {
     if (err) throw err;
 
+    // destroy all devices
+    devices = {};
+
     // Local variable
     result.forEach(function(entry) {
       var id = entry['_id'];
@@ -147,7 +150,9 @@ var io = require('socket.io')(https_server);
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
+  // BUG: This can be executed before fetching all devices from the DB
   console.log('A user connected, sending the devices info by ws');
+  console.log(devices);
 
   // This sends only to the connecting client
   socket.emit('create_all_devices', devices);
@@ -176,7 +181,6 @@ io.sockets.on('connection', function (socket) {
 
       dbo.collection(misc.MongoDB_collection_name).insertMany(new_devices, function(err, result) {
         if (err) throw err;
-        console.log("Number of documents inserted: " + result.insertedCount);
 
         // edit local variable
         result.ops.forEach(function(entry) {
@@ -184,8 +188,6 @@ io.sockets.on('connection', function (socket) {
           devices[id] = entry;
           delete devices[id]['_id']; // Not clean
         });
-
-        console.log(devices);
 
         // Send update to front End
         // TODO: Send only the new devices
@@ -242,7 +244,6 @@ io.sockets.on('connection', function (socket) {
   socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
 
     console.log("edit_devices_in_back_end");
-    console.log(inbound_JSON_message);
 
     // TODO: find way to make all ine one query
     for(var id in inbound_JSON_message) {
@@ -260,7 +261,6 @@ io.sockets.on('connection', function (socket) {
 
         dbo.collection(misc.MongoDB_collection_name).updateOne(query, new_properties, function(err, res) {
           if (err) throw err;
-          console.log("1 document updated");
 
           unsubscribe_all();
 
@@ -271,8 +271,6 @@ io.sockets.on('connection', function (socket) {
 
           var outbound_JSON_message = {};
           outbound_JSON_message[id] = inbound_JSON_message[id];
-          console.log("edit_devices_in_front_end");
-          console.log(outbound_JSON_message);
           io.emit('edit_devices_in_front_end', outbound_JSON_message);
 
           subscribe_all();
@@ -333,7 +331,6 @@ mqtt_client.on('message', function (status_topic, payload) {
 
       dbo.collection(misc.MongoDB_collection_name).updateOne(query, new_properties, function(err, res) {
         if (err) throw err;
-        console.log("1 document updated");
 
         // Update the local variable
         for(var property in inbound_JSON_message[id]){
@@ -343,8 +340,6 @@ mqtt_client.on('message', function (status_topic, payload) {
         // Update the front end
         var outbound_JSON_message = {};
         outbound_JSON_message[id] = inbound_JSON_message[id];
-        console.log("edit_devices_in_front_end");
-        console.log(outbound_JSON_message);
         io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
 
         db.close();
