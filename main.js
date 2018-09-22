@@ -9,14 +9,12 @@ var MongoDB = require('mongodb');
 var ObjectID = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
 
-
-
 // Custom modules
 var credentials = require('./credentials');
 var misc = require('./misc');
 var routing = require("./routing");
 
-// Array containing all the devices, initially populated by a MySQL DB
+// Object containing all the devices, initially populated by a MySQL DB
 var devices = {};
 
 // MQTT config
@@ -48,26 +46,18 @@ function unsubscribe_all(){
   }
 }
 
-
-
-
 MongoClient.connect(misc.MongoDB_URL, function(err, db) {
   if (err) throw err;
   var dbo = db.db(misc.MongoDB_DB_name);
   dbo.collection(misc.MongoDB_collection_name).find({}).toArray(function(err, result) {
     if (err) throw err;
 
-    console.log("MongoDB query result:");
-
+    // Local variable
     result.forEach(function(entry) {
       var id = entry['_id'];
       devices[id] = entry;
       delete devices[id]['_id']; // Not clean
-
     });
-
-    // TODO: Update local variables
-    console.log(devices);
 
     // subscribe all
     subscribe_all();
@@ -77,13 +67,11 @@ MongoClient.connect(misc.MongoDB_URL, function(err, db) {
 });
 
 
-
 // Configuration of SSL (not optimal)
 const ssl_options = {
   key: fs.readFileSync(__dirname+'/ssl/privkey.pem'),
   cert: fs.readFileSync(__dirname+'/ssl/fullchain.pem')
 };
-
 
 
 // Function to check if user is logged in (has a user ID session)
@@ -307,10 +295,9 @@ io.sockets.on('connection', function (socket) {
 }); // end of socket on connect
 
 
-/*
-MQTT
-*/
-
+///////////
+// MQTT //
+//////////
 
 mqtt_client.on('connect', function () {
   console.log("MQTT connected");
@@ -331,9 +318,6 @@ mqtt_client.on('message', function (status_topic, payload) {
       inbound_JSON_message[id].state = payload.toString();
     }
   }
-
-
-
 
   for(var id in inbound_JSON_message) {
 
@@ -367,23 +351,4 @@ mqtt_client.on('message', function (status_topic, payload) {
       });
     });
   }
-
-
-  // Version without DB update
-  /*
-  for(var id in inbound_JSON_message) {
-    // Update the local variable
-    for(var property in inbound_JSON_message[id]){
-      devices[id][property] = inbound_JSON_message[id][property];
-    }
-
-    // Update the front end
-    var outbound_JSON_message = {};
-    outbound_JSON_message[id] = inbound_JSON_message[id];
-    console.log("edit_devices_in_front_end");
-    console.log(outbound_JSON_message);
-    io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
-  }
-  */
-
 });
