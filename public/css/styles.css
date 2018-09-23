@@ -100,7 +100,6 @@ footer {
 
 .device_modal_inner {
 
-
 	width: 200px;
 
 	position: absolute;
@@ -151,6 +150,10 @@ footer {
     border: 1px solid #888;
     width: 50%; /* Could be more or less, depending on screen size */
 		text-align: center;
+}
+
+.modal_content img {
+	max-width: 80%;
 }
 
 

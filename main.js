@@ -5,6 +5,8 @@ var expressSession = require('express-session')
 var bodyParser = require("body-parser");
 var mqtt = require('mqtt');
 var https = require('https');
+
+// Database
 var MongoDB = require('mongodb');
 var ObjectID = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
@@ -90,6 +92,19 @@ function checkAuth(req, res, next) {
 }
 
 
+
+////////////
+// CAMERA //
+///////////
+
+var MjpegCamera = require('mjpeg-camera');
+var camera = new MjpegCamera({
+  name: 'main',
+  user: misc.webcam_username,
+  password: misc.webcam_password,
+  url: 'http://192.168.1.11:8080/video',
+});
+
 ////////////////////
 // EXPRESS CONFIG //
 ////////////////////
@@ -134,6 +149,13 @@ app.post('/login', function (req, res) {
 app.get('/logout', function (req, res) {
   delete req.session.user_id;
   res.redirect('/');
+});
+
+
+
+app.get('/camera', function(req, res){
+
+
 });
 
 

@@ -1,8 +1,12 @@
 var mode = "use";
 
 function close_modal(){
+  // Find more elegant way to do this
   document.getElementById('device_modal').style.display = "none";
   document.getElementById('new_device').style.display = "none";
+  document.getElementById('camera_modal').style.display = "none";
+  document.getElementById('sensor_info_modal').style.display = "none";
+
   restore_device_image();
 }
 
@@ -18,67 +22,9 @@ function toggle_edit_mode(button){
   }
 }
 
-function get_device_image_src(id){
-
-  var device_image_src;
-
-  // SHOULD PROBABLY CHECK IF THOS EXISTS
-
-  switch (devices[id].type) {
-    case "light":
-      if(devices[id].state == devices[id].payload_on) {
-        device_image_src = "images/devices/light_on.svg";
-      }
-      else {
-        device_image_src = "images/devices/light_off.svg";
-      }
-      break;
-    case "lock":
-      if(devices[id].state == devices[id].payload_on) {
-        device_image_src = "images/devices/lock_locked.svg";
-      }
-      else {
-        device_image_src = "images/devices/lock_unlocked.svg";
-      }
-      break;
-    case "climate":
-      if(devices[id].state == devices[id].payload_on) {
-        device_image_src = "images/devices/fan_on.svg";
-      }
-      else {
-        device_image_src = "images/devices/fan_off.svg";
-      }
-      break;
-    default:
-      device_image_src = "images/devices/unknown.svg";
-  }
-  return device_image_src;
-}
-
-function get_device_image_src_by_type(type){
-
-  // TODO: combine with the above
-
-  var device_image_src;
-
-  switch (type) {
-    case "light":
-      device_image_src = "images/devices/light_off.svg";
-      break;
-    case "lock":
-      device_image_src = "images/devices/lock_locked.svg";
-      break;
-    case "climate":
-      device_image_src = "images/devices/fan_off.svg";
-      break;
-    default:
-      device_image_src = "images/devices/unknown.svg";
-  }
-  return device_image_src;
-}
-
-
 window.onload = function(){
+  // Open device modal if floorplan clicked while in edit mode
+
 
   var floorplan = document.getElementById('floorplan');
 
@@ -95,25 +41,51 @@ function make_handler_for_onclick(id) {
 
     if(mode == "use") {
 
-      // TODO: Only send relevant info
+      console.log(devices[id].type);
 
-      // Create the payload
-      var outbound_JSON_message = {};
-      outbound_JSON_message[id] = {};
-      outbound_JSON_message[id].command_topic = devices[id].command_topic;
+      if(devices[id].type != "camera" && devices[id].type != "temperature" && devices[id].type != "humidity"){
+        // Create the payload
+        var outbound_JSON_message = {};
+        outbound_JSON_message[id] = {};
+        outbound_JSON_message[id].command_topic = devices[id].command_topic;
 
-      // Just send the opposite state (been toggled)
-      if(devices[id].state == devices[id].payload_on) {
-        outbound_JSON_message[id].state = devices[id].payload_off;
+        // Just send the opposite state (been toggled)
+        if(devices[id].state == devices[id].payload_on) {
+          outbound_JSON_message[id].state = devices[id].payload_off;
+        }
+        else {
+          outbound_JSON_message[id].state = devices[id].payload_on;
+        }
+        console.log('front_to_mqtt');
+        socket.emit('front_to_mqtt', outbound_JSON_message);
       }
-      else {
-        outbound_JSON_message[id].state = devices[id].payload_on;
+      else if(devices[id].type == "camera"){
+
+        var camera_modal = document.getElementById("camera_modal");
+        camera_modal.style.display = "flex";
+
       }
-      console.log('front_to_mqtt');
-      console.log(outbound_JSON_message);
-      socket.emit('front_to_mqtt', outbound_JSON_message);
+      else if(devices[id].type == "humidity" || devices[id].type == "temperature"){
+
+        var sensor_info_modal = document.getElementById("sensor_info_modal");
+        var sensor_info = document.getElementById("sensor_info");
+        sensor_info_modal.style.display = "flex";
+
+        var state_json = JSON.parse(devices[id].state);
+
+        if(devices[id].type == "temperature"){
+          sensor_info.innerText = state_json.temperature + "°C";
+        }
+        else {
+          sensor_info.innerText = state_json.humidity + "%";
+        }
+
+      }
     }
+
     else if(mode == "edit") {
+
+      // Open add device modal for editing
 
       // don't show the new device since it's an edit of an existing one
       document.getElementById('new_device').style.display = "none";
@@ -121,31 +93,41 @@ function make_handler_for_onclick(id) {
       var floorplan = document.getElementById('floorplan');
       var device_modal = document.getElementById('device_modal');
 
-      // Display the modal
+      // Display the modal at the right position
       device_modal.style.display = "flex";
       device_modal.style.left = devices[id].position.x.toString() + "%";
       device_modal.style.top = devices[id].position.y.toString() + "%";
 
-      // Fill the "form"
+      // Fill the inputs
       // TODO: THOSE ARE NEVER DEFINED
       id_input.value = id;
       type_select.value = devices[id].type;
-      status_topic_input.value = devices[id].status_topic;
-      command_topic_input.value = devices[id].command_topic;
-      payload_on_input.value = devices[id].payload_on;
-      payload_off_input.value = devices[id].payload_off;
+
+      var specific_data_inputs = document.getElementById('device_modal').querySelectorAll(".specific_input");
+      specific_data_inputs.forEach(function(input){
+        input.value = devices[id][input.name];
+      });
 
       // Manage buttons visibility
       add_button.style.display="none";
       delete_button.style.display="initial";
       submit_button.style.display="initial";
 
+      // Test
+      var specific_data_inputs = document.getElementById('device_modal').querySelectorAll(".specific_input");
+      specific_data_inputs.forEach(function(input){
+        console.log(input.name+": "+input.value);
+      });
+
     }
   };
 }
 
 function get_mouse_pos_percent(element,evt) {
+  // Gets the mouse position relative to element in percent
+
   var rect = element.getBoundingClientRect();
+
   return {
     x: (100.00*(evt.clientX - rect.left)/element.offsetWidth).toFixed(4),
     y: (100.00*(evt.clientY - rect.top)/element.offsetHeight).toFixed(4)
@@ -153,6 +135,7 @@ function get_mouse_pos_percent(element,evt) {
 }
 
 function open_device_modal(evt) {
+  // Meant for adding a device
 
   // Getting elements to work with
   var floorplan = document.getElementById('floorplan');
@@ -178,11 +161,11 @@ function open_device_modal(evt) {
 
   // Clear the other input fields
   type_select.value="";
-  status_topic_input.value = "";
-  command_topic_input.value = "";
-  payload_on_input.value = "";
-  payload_off_input.value = "";
 
+  var specific_data_inputs = document.getElementById('device_modal').querySelectorAll(".specific_input");
+  specific_data_inputs.forEach(function(input){
+    input.value = "";
+  });
 
   // Manage buttons visibility
   add_button.style.display="initial";

@@ -28,26 +28,34 @@
         <div id="device_modal" class="device_modal">
           <div class="device_modal_inner"> <!-- No idea why this div is needed -->
 
-            <select id="type_select" onchange="update_device_image(this)">
+            <!-- Select type of device -->
+            <!-- This will decide what info is relevant to ask -->
+            <select id="type_select" onchange="update_device_image(this)" name="type">
               <option value="" selected disabled hidden>Type</option>
               <option value="light">Light</option>
               <option value="lock">Lock</option>
-              <option value="climate">Climate control</option>
+              <option value="fan">Fan</option>
               <option value="temperature">Temperature sensor</option>
               <option value="humidity">Humidity sensor</option>
               <option value="camera">Camera</option>
               <option value="other">Other</option>
             </select><br>
 
+            <!-- Info common to all devices -->
             <input type="hidden" id="id_input" name="id" >
             <input type="hidden" id="position_x_input" name="position_x">
             <input type="hidden" id="position_y_input" name="position_y">
 
-            <!-- MQTT info -->
-            <input type="text" id="status_topic_input" name="status_topic" placeholder="Status topic"><br>
-            <input type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
-            <input type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
-            <input type="text" id="payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
+
+            <div id="specific_data_inputs">
+
+              <!-- MQTT info -->
+              <input class="specific_input" type="text" id="status_topic_input" name="status_topic" placeholder="Status topic"><br>
+              <input class="specific_input" type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
+              <input class="specific_input" type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
+              <input class="specific_input" type="text" id="payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
+
+            </div>
 
             <!-- Buttons -->
             <input type="button" id="add_button" value="Create" onclick="add_device_ws()">
@@ -72,12 +80,32 @@
 
   </div> <!-- End of wrapper -->
 
+  <!-- Modals -->
   <!-- Modal for connection -->
   <div id="disconnected_modal" class="modal">
     <div class="modal_content">
       NO CONNECTION
     </div>
   </div>
+
+  <!-- Sensor info modal -->
+  <div id="sensor_info_modal" class="modal">
+    <div class="modal_content">
+      <div id="sensor_info">
+      </div>
+      <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
+    </div>
+  </div>
+
+  <!-- Camera modal -->
+  <div id="camera_modal" class="modal">
+    <div class="modal_content">
+      <img src="http://192.168.1.11:8080/shot.jpg">
+      <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
+    </div>
+  </div>
+
+
 
   <!-- JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>

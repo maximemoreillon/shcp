@@ -1,22 +1,92 @@
-var devices_icons_directory = 'images/devices/';
+function get_device_image_src(id){
 
-var devices_icons ={};
-devices_icons['light'] = {};
-devices_icons['light']['ON'] = devices_icons_directory + 'light_off.svg';
-devices_icons['light']['OFF'] = devices_icons_directory + 'light_on.svg';
+  var device_image_src;
 
-devices_icons['lock'] = {};
-devices_icons['lock']['LOCKED'] = devices_icons_directory + 'lock_unlocked.svg';
-devices_icons['lock']['UNLOCKED'] = devices_icons_directory + 'lock_locked.svg';
+  // SHOULD PROBABLY CHECK IF THOS EXISTS
 
-devices_icons['fan'] = {};
-devices_icons['fan']['ON'] = devices_icons_directory + 'fan_off.svg';
-devices_icons['fan']['OFF'] = devices_icons_directory + 'fan_on.svg';
+  switch (devices[id].type) {
+    case "light":
+      if(devices[id].state == devices[id].payload_on) {
+        device_image_src = "images/devices/light_on.svg";
+      }
+      else {
+        device_image_src = "images/devices/light_off.svg";
+      }
+      break;
 
-devices_icons['heater'] = {};
-devices_icons['heater']['ON'] = devices_icons_directory + 'heater_off.svg';
-devices_icons['heater']['OFF'] = devices_icons_directory + 'heater_on.svg';
+    case "lock":
+      if(devices[id].state == devices[id].payload_on) {
+        device_image_src = "images/devices/lock_locked.svg";
+      }
+      else {
+        device_image_src = "images/devices/lock_unlocked.svg";
+      }
+      break;
 
-devices_icons['unknown'] = {};
-devices_icons['heater']['ON'] = devices_icons_directory + 'unknown.svg';
-devices_icons['heater']['OFF'] = devices_icons_directory + 'unknown.svg';
+    case "fan":
+      if(devices[id].state == devices[id].payload_on) {
+        device_image_src = "images/devices/fan_on.svg";
+      }
+      else {
+        device_image_src = "images/devices/fan_off.svg";
+      }
+      break;
+
+    case "camera":
+      device_image_src = "images/devices/cctv.svg";
+      break;
+
+    case "temperature":
+      device_image_src = "images/devices/thermometer.svg";
+      break;
+
+    case "humidity":
+      device_image_src = "images/devices/humidity.svg";
+      break;
+
+    default:
+      device_image_src = "images/devices/unknown.svg";
+  }
+  return device_image_src;
+}
+
+function get_device_image_src_by_type(type){
+
+  // TODO: combine with the above
+
+  var device_image_src;
+
+  switch (type) {
+    case "light":
+      device_image_src = "images/devices/light_off.svg";
+      break;
+
+    case "lock":
+      device_image_src = "images/devices/lock_locked.svg";
+      break;
+
+    case "fan":
+      device_image_src = "images/devices/fan_off.svg";
+      break;
+
+    case "heater":
+      device_image_src = "images/devices/heater_off.svg";
+      break;
+
+    case "temperature":
+      device_image_src = "images/devices/thermometer.svg";
+      break;
+
+    case "humidity":
+      device_image_src = "images/devices/humidity.svg";
+      break;
+
+    case "camera":
+      device_image_src = "images/devices/cctv.svg";
+      break;
+
+    default:
+      device_image_src = "images/devices/unknown.svg";
+  }
+  return device_image_src;
+}
