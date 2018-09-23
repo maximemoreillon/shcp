@@ -8,6 +8,9 @@ function close_modal(){
   document.getElementById('camera_modal').style.display = "none";
   document.getElementById('sensor_info_modal').style.display = "none";
 
+  // TODO: Find proper location for this
+  socket.emit('stop_camera', 'nothing');
+
   restore_device_image();
 }
 
@@ -88,7 +91,7 @@ function make_handler_for_onclick(id) {
         // Open up the camera modal
         var camera_modal = document.getElementById("camera_modal");
         camera_modal.style.display = "flex";
-
+        socket.emit('start_camera', 'nothing');
       }
       else if(devices[id].type == "humidity" || devices[id].type == "temperature"){
         // Open up the device info modal
