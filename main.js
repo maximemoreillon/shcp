@@ -33,6 +33,7 @@ function subscribe_all(){
   // Subscribe to all topics
 
   console.log("Subscribing to all MQTT topics");
+  
   for(var id in devices) {
     if(typeof devices[id].status_topic !== 'undefined'){
       if(devices[id].status_topic != ""){

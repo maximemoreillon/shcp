@@ -1,5 +1,7 @@
 function add_device_ws() {
 
+  disable_edit_mode();
+
   // Getting the elements
   var position_x_input = document.getElementById("position_x_input");
   var position_y_input = document.getElementById("position_y_input");
@@ -30,6 +32,8 @@ function add_device_ws() {
 
 function edit_device_ws() {
 
+  disable_edit_mode();
+
   // Getting the elements
   var position_x_input = document.getElementById("position_x_input");
   var position_y_input = document.getElementById("position_y_input");
@@ -55,6 +59,8 @@ function edit_device_ws() {
 }
 
 function delete_device_ws() {
+
+  disable_edit_mode();
 
   var id_input = document.getElementById("id_input");
 

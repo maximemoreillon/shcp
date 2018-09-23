@@ -10,32 +10,37 @@ function close_modal(){
   restore_device_image();
 }
 
-function toggle_edit_mode(button){
+function enable_edit_mode(){
+  mode="edit";
+
+  document.getElementById("toggle_edit_button").src= "images/icons/pencil_off.svg";
+
+  // Make devices appear editable
+  var devices_image = document.querySelectorAll(".device_image");
+  devices_image.forEach(function(device_image) {
+    device_image.classList.add("device_edit");
+  });
+}
+
+function disable_edit_mode(){
+  mode="use";
+
+  document.getElementById("toggle_edit_button").src= "images/icons/pencil.svg";
+
+  // Make devices appear not editable
+  var devices_image = document.querySelectorAll(".device_image");
+  devices_image.forEach(function(device_image) {
+    device_image.classList.remove("device_edit");
+  });
+}
+
+function toggle_edit_mode(){
 
   if(mode=="use"){
-
-    mode="edit";
-    button.src = "images/icons/pencil_off.svg";
-
-    // Make devices appear editable
-    var devices_image = document.querySelectorAll(".device_image");
-    devices_image.forEach(function(device_image) {
-      console.log(device_image);
-      device_image.classList.add("device_edit");
-    });
-
-
+    enable_edit_mode()
   }
   else if(mode == "edit"){
-    mode="use";
-    button.src = "images/icons/pencil.svg";
-
-    // Make devices appear not editable
-    var devices_image = document.querySelectorAll(".device_image");
-    devices_image.forEach(function(device_image) {
-      console.log(device_image);
-      device_image.classList.remove("device_edit");
-    });
+    disable_edit_mode();
 
     close_modal();
   }
