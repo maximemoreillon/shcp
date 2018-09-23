@@ -33,7 +33,7 @@ function subscribe_all(){
   // Subscribe to all topics
 
   console.log("Subscribing to all MQTT topics");
-  
+
   for(var id in devices) {
     if(typeof devices[id].status_topic !== 'undefined'){
       if(devices[id].status_topic != ""){
@@ -156,7 +156,7 @@ app.get('/logout', function (req, res) {
 
 
 app.get('/camera', function(req, res){
-
+  camera.pipe(res);
 
 });
 
@@ -178,11 +178,9 @@ io.sockets.on('connection', function (socket) {
 
   // BUG: This can be executed before fetching all devices from the DB
   console.log('A user connected, sending the devices info by ws');
-  console.log(devices);
 
   // This sends only to the connecting client
   socket.emit('create_all_devices', devices);
-
 
   socket.on('disconnect', function(){
     console.log('user disconnected');
@@ -250,7 +248,6 @@ io.sockets.on('connection', function (socket) {
 
       dbo.collection(misc.MongoDB_collection_name).deleteMany( query , function(err, obj) {
         if (err) throw err;
-        console.log(obj.result.n + " document(s) deleted");
 
         unsubscribe_all();
 
