@@ -11,13 +11,32 @@ function close_modal(){
 }
 
 function toggle_edit_mode(button){
+
   if(mode=="use"){
+
     mode="edit";
     button.src = "images/icons/ok.svg";
+
+    // Make devices appear editable
+    var devices_image = document.querySelectorAll(".device_image");
+    devices_image.forEach(function(device_image) {
+      console.log(device_image);
+      device_image.classList.add("device_edit");
+    });
+
+
   }
   else if(mode == "edit"){
     mode="use";
     button.src = "images/icons/edit.svg";
+
+    // Make devices appear not editable
+    var devices_image = document.querySelectorAll(".device_image");
+    devices_image.forEach(function(device_image) {
+      console.log(device_image);
+      device_image.classList.remove("device_edit");
+    });
+
     close_modal();
   }
 }

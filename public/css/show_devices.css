@@ -24,6 +24,24 @@
   top: -50%;
 }
 
+.device_edit {
+
+  animation-name: wiggle;
+  animation-duration: 500ms;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+
+}
+
+@keyframes wiggle {
+    0%  {transform: rotate(0deg);}
+    25% {transform: rotate(-15deg);}
+    50% {transform: rotate(0deg);}
+    75% {transform: rotate(15deg);}
+    100% {transform: rotate(0deg);}
+}
+
+
 #new_device{
   display: none;
 }
