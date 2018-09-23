@@ -28,6 +28,8 @@
         <div id="device_modal" class="device_modal">
           <div class="device_modal_inner"> <!-- No idea why this div is needed -->
 
+            Add / Edit device<br><br>
+
             <!-- Select type of device -->
             <!-- This will decide what info is relevant to ask -->
             <select id="type_select" onchange="update_device_image(this)" name="type">
@@ -54,6 +56,8 @@
               <input class="specific_input" type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
               <input class="specific_input" type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
               <input class="specific_input" type="text" id="payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
+
+              <!-- Camera info -->
 
             </div>
 
@@ -91,8 +95,9 @@
   <!-- Sensor info modal -->
   <div id="sensor_info_modal" class="modal">
     <div class="modal_content">
+      Sensor info
       <div id="sensor_info">
-      </div>
+      </div><br>
       <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
     </div>
   </div>
@@ -100,7 +105,8 @@
   <!-- Camera modal -->
   <div id="camera_modal" class="modal">
     <div class="modal_content">
-      <img src="http://192.168.1.11:8080/shot.jpg">
+      <img src="images/devices/cctv.svg"><br><br>
+      Video feed unavailable<br><br>
       <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
     </div>
   </div>

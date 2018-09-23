@@ -16,7 +16,8 @@ body {
 .wrapper {
 
 	margin: 25px;
-	width: 80%;
+	width: 95%;
+	max-width: 500px;
 
 	/* Grid */
 	display: grid;

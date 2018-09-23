@@ -29,7 +29,8 @@ socket.on('add_devices_in_front_end', function (inbound_JSON_message) {
     floorplan_wrapper.appendChild(device_wrapper);
 
     var device_image = document.createElement('img');
-    device_image.className = "device_image";
+    device_image.classList.add("device_image");
+    device_image.classList.add("device_edit");
     device_image.src = get_device_image_src(id);
     device_image.onclick = make_handler_for_onclick(id);
     device_wrapper.appendChild(device_image);
