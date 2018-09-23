@@ -1,7 +1,6 @@
 var socket = io();
 var devices = {};
 
-
 socket.on('connect', function() {
   console.log('WS connected');
   document.getElementById('disconnected_modal').style.display = "none";
@@ -13,27 +12,15 @@ socket.on('disconnect', function(){
   document.getElementById('disconnected_modal').style.display = "flex";
 });
 
+socket.on('create_all_devices', function (inbound_JSON_message) {
+  console.log('create_all_devices');
+  destroy_all_devices();
+  create_devices_from_message(inbound_JSON_message);
+});
 
 socket.on('add_devices_in_front_end', function (inbound_JSON_message) {
   console.log('add_devices_in_front_end');
-
-  for(var id in inbound_JSON_message) {
-    devices[id] = inbound_JSON_message[id];
-
-    // Create the image
-    var device_wrapper = document.createElement('div');
-    device_wrapper.id = String(id); // Not optimal
-    device_wrapper.className = "device_wrapper";
-    device_wrapper.style.left = String(devices[id].position.x) + "%";
-    device_wrapper.style.top = String(devices[id].position.y) + "%";
-    floorplan_wrapper.appendChild(device_wrapper);
-
-    var device_image = document.createElement('img');
-    device_image.classList.add("device_image");
-    device_image.src = get_device_image_src(id);
-    device_image.onclick = make_handler_for_onclick(id);
-    device_wrapper.appendChild(device_image);
-  }
+  create_devices_from_message(inbound_JSON_message);
 });
 
 socket.on('delete_devices_in_front_end', function (inbound_JSON_message) {
@@ -46,15 +33,12 @@ socket.on('delete_devices_in_front_end', function (inbound_JSON_message) {
     var element = document.getElementById(id);
     element.parentNode.removeChild(element);
   }
-
 });
-
 
 socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
   // edit the device according to the all entries of the JSON_message
 
   console.log('edit_devices_in_front_end');
-  console.log(inbound_JSON_message);
 
   for(var id in inbound_JSON_message) {
     // edit the device's properties
@@ -63,37 +47,23 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
     }
 
     // Set the image accordingly
+    // TODO: Find way to deal with images
     var device_wrapper = document.getElementById(id);
     var device_image = device_wrapper.getElementsByClassName("device_image")[0];
     device_image.src = get_device_image_src(id);
   }
-
-
-
 });
 
-socket.on('create_all_devices', function (inbound_JSON_message) {
 
-  // Create all devices
 
-  console.log('create_all_devices');
-  console.log(inbound_JSON_message);
+// Some helpfer functions
 
-  // remove all images
-  for(var id in devices) {
-    var element = document.getElementById(id);
-    element.parentNode.removeChild(element);
-  }
-
-  //destroy all devices
-  devices = {};
+function create_devices_from_message(inbound_JSON_message){
 
   // Get the floorplan wrapper to add images
   var floorplan_wrapper = document.getElementById("floorplan_wrapper");
 
-  // Update the device according to the all entries of the JSON_message
   for(var id in inbound_JSON_message) {
-    // Check if the device actually exists. if not create it
 
     // Create the new device and get as many info from the JSON_messager as possible
     devices[id] = inbound_JSON_message[id];
@@ -112,6 +82,15 @@ socket.on('create_all_devices', function (inbound_JSON_message) {
     device_image.onclick = make_handler_for_onclick(id);
     device_wrapper.appendChild(device_image);
   }
+}
 
-  console.log(devices);
-});
+function destroy_all_devices() {
+  // remove all images
+  for(var id in devices) {
+    var element = document.getElementById(id);
+    element.parentNode.removeChild(element);
+  }
+
+  //destroy all devices
+  devices = {};
+}

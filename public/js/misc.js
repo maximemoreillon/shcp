@@ -2,6 +2,7 @@ var mode = "use";
 
 function close_modal(){
   // Find more elegant way to do this
+  // Basically close all modals except the disconnection modal
   document.getElementById('device_modal').style.display = "none";
   document.getElementById('new_device').style.display = "none";
   document.getElementById('camera_modal').style.display = "none";
@@ -41,14 +42,12 @@ function toggle_edit_mode(){
   }
   else if(mode == "edit"){
     disable_edit_mode();
-
     close_modal();
   }
 }
 
 window.onload = function(){
   // Open device modal if floorplan clicked while in edit mode
-
 
   var floorplan = document.getElementById('floorplan');
 
@@ -59,15 +58,16 @@ window.onload = function(){
   });
 }
 
-// Creates a handler for onclick events later
 function make_handler_for_onclick(id) {
+  // Creates a handler for onclick events later
+
   return function() {
 
     if(mode == "use") {
 
-      console.log(devices[id].type);
+      if(devices[id].type != "camera" && devices[id].type != "temperature" && devices[id].type != "humidity") {
+        // FOR MQTT devices light lights, fans and locks
 
-      if(devices[id].type != "camera" && devices[id].type != "temperature" && devices[id].type != "humidity"){
         // Create the payload
         var outbound_JSON_message = {};
         outbound_JSON_message[id] = {};
@@ -80,17 +80,20 @@ function make_handler_for_onclick(id) {
         else {
           outbound_JSON_message[id].state = devices[id].payload_on;
         }
+
         console.log('front_to_mqtt');
         socket.emit('front_to_mqtt', outbound_JSON_message);
       }
       else if(devices[id].type == "camera"){
-
+        // Open up the camera modal
         var camera_modal = document.getElementById("camera_modal");
         camera_modal.style.display = "flex";
 
       }
       else if(devices[id].type == "humidity" || devices[id].type == "temperature"){
+        // Open up the device info modal
 
+        // NOTE: THIS IS A BIT DIRTY
         var sensor_info_modal = document.getElementById("sensor_info_modal");
         var sensor_info = document.getElementById("sensor_info");
         sensor_info_modal.style.display = "flex";
@@ -103,7 +106,6 @@ function make_handler_for_onclick(id) {
         else {
           sensor_info.innerText = state_json.humidity + "%";
         }
-
       }
     }
 
@@ -127,6 +129,7 @@ function make_handler_for_onclick(id) {
       id_input.value = id;
       type_select.value = devices[id].type;
 
+      // Specific inputs
       var specific_data_inputs = document.getElementById('device_modal').querySelectorAll(".specific_input");
       specific_data_inputs.forEach(function(input){
         input.value = devices[id][input.name];
@@ -136,12 +139,6 @@ function make_handler_for_onclick(id) {
       add_button.style.display="none";
       delete_button.style.display="initial";
       submit_button.style.display="initial";
-
-      // Test
-      var specific_data_inputs = document.getElementById('device_modal').querySelectorAll(".specific_input");
-      specific_data_inputs.forEach(function(input){
-        console.log(input.name+": "+input.value);
-      });
 
     }
   };
@@ -181,11 +178,6 @@ function open_device_modal(evt) {
   position_x_input.value = mouse_pos.x;
   position_y_input.value = mouse_pos.y;
 
-  id_input.value = "new_device";
-
-  // Clear the other input fields
-  type_select.value="";
-
   var specific_data_inputs = document.getElementById('device_modal').querySelectorAll(".specific_input");
   specific_data_inputs.forEach(function(input){
     input.value = "";
@@ -200,16 +192,15 @@ function open_device_modal(evt) {
   new_device.style.display = "block";
   new_device.style.left = mouse_pos.x.toString()+"%";
   new_device.style.top = mouse_pos.y.toString()+"%";
-
   new_device_image.src=get_device_image_src_by_type(type_select.value);
 
 }
 
 function restore_device_image() {
 
+  // When edit is canceled, set the image back to what it was
 
   var device_id = id_input.value;
-
 
   if(device_id != "new_device" && device_id != '') {
     // Updates the new image when the select changes
@@ -218,16 +209,4 @@ function restore_device_image() {
 
     device_image.src = get_device_image_src(device_id);
   }
-}
-
-
-function update_device_image(select) {
-
-  var device_id = id_input.value;
-
-  // Updates the new image when the select changes
-  var device = document.getElementById(device_id);
-  var device_image = device.getElementsByClassName("device_image")[0];
-  device_image.src = get_device_image_src_by_type(select.value);
-
 }

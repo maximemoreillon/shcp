@@ -1,7 +1,5 @@
 function add_device_ws() {
 
-  disable_edit_mode();
-
   // Getting the elements
   var position_x_input = document.getElementById("position_x_input");
   var position_y_input = document.getElementById("position_y_input");
@@ -27,12 +25,11 @@ function add_device_ws() {
   console.log("add_devices_in_back_end");
   socket.emit('add_devices_in_back_end', outbound_JSON_message);
 
+  disable_edit_mode();
   close_modal();
 }
 
 function edit_device_ws() {
-
-  disable_edit_mode();
 
   // Getting the elements
   var position_x_input = document.getElementById("position_x_input");
@@ -55,12 +52,11 @@ function edit_device_ws() {
   console.log("edit_devices_in_back_end");
   socket.emit('edit_devices_in_back_end', outbound_JSON_message);
 
+  disable_edit_mode();
   close_modal();
 }
 
 function delete_device_ws() {
-
-  disable_edit_mode();
 
   var id_input = document.getElementById("id_input");
 
@@ -69,9 +65,8 @@ function delete_device_ws() {
   outbound_JSON_message[id] = {};
 
   console.log("delete_devices_in_back_end");
-  console.log(outbound_JSON_message);
   socket.emit('delete_devices_in_back_end', outbound_JSON_message);
 
+  disable_edit_mode();
   close_modal();
-
 }
