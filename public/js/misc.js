@@ -15,7 +15,7 @@ function toggle_edit_mode(button){
   if(mode=="use"){
 
     mode="edit";
-    button.src = "images/icons/ok.svg";
+    button.src = "images/icons/pencil_off.svg";
 
     // Make devices appear editable
     var devices_image = document.querySelectorAll(".device_image");
@@ -28,7 +28,7 @@ function toggle_edit_mode(button){
   }
   else if(mode == "edit"){
     mode="use";
-    button.src = "images/icons/edit.svg";
+    button.src = "images/icons/pencil.svg";
 
     // Make devices appear not editable
     var devices_image = document.querySelectorAll(".device_image");
