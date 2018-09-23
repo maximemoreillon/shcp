@@ -110,14 +110,12 @@ footer {
 
   padding: 10px;
 
-	background: white;
+
 
 	text-align: center;
 
+	background: white;
 	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-
-
-
 }
 
 .device_modal_inner input[type="text"], .device_modal_inner select {
