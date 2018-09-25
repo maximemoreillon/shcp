@@ -98,6 +98,8 @@ function checkAuth(req, res, next) {
 ////////////
 // CAMERA //
 ///////////
+
+/*
 var MjpegCamera = require('mjpeg-camera');
 var FileOnWrite = require('file-on-write');
 
@@ -120,6 +122,7 @@ var camera = new MjpegCamera({
   password: misc.webcam_password,
   url: 'http://192.168.1.11:8080/video'
 });
+*/
 
 
 
@@ -329,7 +332,7 @@ io.sockets.on('connection', function (socket) {
     }
   });
 
-
+  /*
   // Experimental stuff with the camera
   socket.on("start_camera", function(inbound_JSON_message) {
     console.log("start_camera");
@@ -341,6 +344,7 @@ io.sockets.on('connection', function (socket) {
     console.log("stop_camera");
     camera.stop();
   });
+  */
 
 
 
