@@ -1,12 +1,10 @@
-function get_device_image_src(id){
+function get_device_image_src(device){
 
   var device_image_src;
 
-  // SHOULD PROBABLY CHECK IF THOS EXISTS
-
-  switch (devices[id].type) {
+  switch (device.type) {
     case "light":
-      if(devices[id].state == devices[id].payload_on) {
+      if(device.state == device.payload_on) {
         device_image_src = "images/devices/light_on.svg";
       }
       else {
@@ -15,7 +13,7 @@ function get_device_image_src(id){
       break;
 
     case "lock":
-      if(devices[id].state == devices[id].payload_on) {
+      if(device.state == device.payload_on) {
         device_image_src = "images/devices/lock_locked.svg";
       }
       else {
@@ -24,7 +22,7 @@ function get_device_image_src(id){
       break;
 
     case "fan":
-      if(devices[id].state == devices[id].payload_on) {
+      if(device.state == device.payload_on) {
         device_image_src = "images/devices/fan_on.svg";
       }
       else {
@@ -32,6 +30,15 @@ function get_device_image_src(id){
       }
       break;
 
+    case "switch":
+      if(device.state == device.payload_on) {
+        device_image_src = "images/devices/switch_on.svg";
+      }
+      else {
+        device_image_src = "images/devices/switch_off.svg";
+      }
+      break;
+
     case "camera":
       device_image_src = "images/devices/cctv.svg";
       break;
@@ -44,45 +51,12 @@ function get_device_image_src(id){
       device_image_src = "images/devices/humidity.svg";
       break;
 
-    default:
-      device_image_src = "images/devices/unknown.svg";
-  }
-  return device_image_src;
-}
-
-function get_device_image_src_by_type(type){
-
-  // TODO: combine with the above
-
-  var device_image_src;
-
-  switch (type) {
-    case "light":
-      device_image_src = "images/devices/light_off.svg";
+    case "power":
+      device_image_src = "images/devices/electricity.svg";
       break;
 
-    case "lock":
-      device_image_src = "images/devices/lock_locked.svg";
-      break;
-
-    case "fan":
-      device_image_src = "images/devices/fan_off.svg";
-      break;
-
-    case "heater":
-      device_image_src = "images/devices/heater_off.svg";
-      break;
-
-    case "temperature":
-      device_image_src = "images/devices/thermometer.svg";
-      break;
-
-    case "humidity":
+    case "sensor":
       device_image_src = "images/devices/humidity.svg";
-      break;
-
-    case "camera":
-      device_image_src = "images/devices/cctv.svg";
       break;
 
     default:

@@ -32,14 +32,23 @@
 
             <!-- Select type of device -->
             <!-- This will decide what info is relevant to ask -->
-            <select id="type_select" onchange="update_device_image(this)" name="type">
+            <select id="type_select" name="type">
               <option value="" selected disabled hidden>Type</option>
+
               <option value="light">Light</option>
               <option value="lock">Lock</option>
               <option value="fan">Fan</option>
+              <option value="heater">Heater</option>
+              <option value="switch">Generic switch</option>
+
               <option value="temperature">Temperature sensor</option>
               <option value="humidity">Humidity sensor</option>
+              <option value="power">Power monitor</option>
+
+              <option value="sensor">Generic sensor</option>
+
               <option value="camera">Camera</option>
+
               <option value="other">Other</option>
             </select><br>
 

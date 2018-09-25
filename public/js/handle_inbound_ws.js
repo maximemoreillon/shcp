@@ -50,7 +50,7 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
     // TODO: Find way to deal with images
     var device_wrapper = document.getElementById(id);
     var device_image = device_wrapper.getElementsByClassName("device_image")[0];
-    device_image.src = get_device_image_src(id);
+    device_image.src = get_device_image_src(devices[id]);
   }
 });
 
@@ -78,7 +78,7 @@ function create_devices_from_message(inbound_JSON_message){
 
     var device_image = document.createElement('img');
     device_image.className = "device_image";
-    device_image.src = get_device_image_src(id);
+    device_image.src = get_device_image_src(devices[id]);
     device_image.onclick = make_handler_for_onclick(id);
     device_wrapper.appendChild(device_image);
   }

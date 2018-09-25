@@ -4,10 +4,11 @@ function add_device_ws() {
   var position_x_input = document.getElementById("position_x_input");
   var position_y_input = document.getElementById("position_y_input");
   var type_select = document.getElementById("type_select");
+  var id_input = document.getElementById("id_input");
 
   // Construct JSON message
   // The ID is given later by the DB
-  var id = 'new_device';
+  var id = id_input.value;
   var outbound_JSON_message = {};
   outbound_JSON_message[id] = {};
 
