@@ -3,7 +3,7 @@ var fs = require('fs');
 var express = require('express');
 var expressSession = require('express-session')
 var bodyParser = require("body-parser");
-var https = require('https');
+var http = require('http');
 
 var mqtt = require('mqtt');
 
@@ -74,13 +74,6 @@ MongoClient.connect(misc.MongoDB_URL, function(err, db) {
     db.close();
   });
 });
-
-
-// Configuration of SSL (not optimal)
-const ssl_options = {
-  key: fs.readFileSync(__dirname+'/ssl/privkey.pem'),
-  cert: fs.readFileSync(__dirname+'/ssl/fullchain.pem')
-};
 
 
 // Function to check if user is logged in (has a user ID session)
@@ -177,11 +170,11 @@ app.get('/logout', function (req, res) {
 
 
 // Start the web server
-var https_server = https.createServer(ssl_options,app)
-https_server.listen(8080);
+var http_server = http.createServer(app)
+http_server.listen(8080);
 
 // Start websocket
-var io = require('socket.io')(https_server);
+var io = require('socket.io')(http_server);
 
 
 ////////////////
