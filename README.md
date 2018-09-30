@@ -1,9 +1,9 @@
-# shcp
-Smart Home Control Panel
+# Smart Home Control Panel
 
-A Node.js application to control IoT devices via MQTT.
+This is a Node.js web app that allows users to control and monitor home automation MQTT devices.
+It was built so as to learn about Node.js and is not intented to compete with existing software sharing the same function such as home assistant.
 
-This is a work in progress
+This is still a work in progress
 
 
 ## Dependencies
