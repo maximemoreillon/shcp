@@ -3,6 +3,7 @@ body {
 
 	margin: 0px;
 
+	/* flex */
 	display: flex;
 	justify-content: center;
 	align-items: stretch;
@@ -16,8 +17,9 @@ body {
 .wrapper {
 
 	margin: 25px;
-	width: 95%;
-	max-width: 500px;
+
+	width: 100%;
+	max-width: 600px;
 
 	/* Grid */
 	display: grid;
@@ -31,12 +33,14 @@ body {
 }
 
 header {
+	/* flex */
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 
 	padding: 25px;
 
+	/* misc visuals */
 	background: #222222;
 	box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
@@ -173,4 +177,11 @@ footer {
 input[type="image"]{
 	width: 30px;
 	height: 30px;
+	
+}
+
+@media screen and (max-width: 600px) {
+  .wrapper {
+    margin: 0;
+  }
 }

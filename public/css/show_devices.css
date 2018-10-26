@@ -15,13 +15,16 @@
 }
 
 .device_image {
-  position: relative;
 
   width: 100%;
   height: 100%;
 
+  /* image location set by its center */
+  position: relative;
   left: -50%;
   top: -50%;
+
+  cursor: pointer;
 }
 
 .device_edit {
