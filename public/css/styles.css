@@ -1,28 +1,43 @@
+:root {
+  --accent_color: #ce0000;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-	font-family: Verdana, Geneva, sans-serif;
 
 	margin: 0px;
+  min-height: 100vh;
+
 
 	/* flex */
 	display: flex;
 	justify-content: center;
 	align-items: stretch;
 
-	background: #cccccc;
+	/* visuals */
+	background-color: #cccccc;
 
-	min-height: 100%;
+	/* text */
+	font-family: Verdana, Geneva, sans-serif;
 
 }
 
 .wrapper {
 
+	/* sizing */
 	margin: 25px;
-
 	width: 100%;
-	max-width: 600px;
+	max-width: 1000px;
 
 	/* Grid */
 	display: grid;
+	grid-template-areas:
+		'header'
+		'main'
+		'footer';
 	grid-template-columns: auto;
 	grid-template-rows: 125px auto 80px;
 
@@ -33,6 +48,9 @@ body {
 }
 
 header {
+
+	grid-area: header;
+
 	/* flex */
 	display: flex;
 	justify-content: space-between;
@@ -68,11 +86,80 @@ header {
 
 
 main {
+	grid-area: main;
+
 	padding: 30px;
+
+}
+
+.floorplan_wrapper_outer {
+
+  /* flex */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 }
+
+.floorplan_wrapper {
+
+  /* needs to be relative for device positioning */
+  position: relative;
+}
+
+.floorplan {
+
+  width: 30vmin;
+
+}
+
+.device_wrapper {
+  position: absolute;
+
+  width: 5vmin;
+  height: 5vmin;
+}
+
+.device_image {
+
+  /* ensure above rest */
+  z-index: 100;
+
+  /* as big as its container */
+  width: 100%;
+  height: 100%;
+
+  /* image location set by its center */
+  position: relative;
+  left: -50%;
+  top: -50%;
+
+  cursor: pointer;
+}
+
+.device_edit {
+
+  animation-name: wiggle;
+  animation-duration: 500ms;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+
+}
+
+@keyframes wiggle {
+  0%  {transform: rotate(0deg);}
+  25% {transform: rotate(-15deg);}
+  50% {transform: rotate(0deg);}
+  75% {transform: rotate(15deg);}
+  100% {transform: rotate(0deg);}
+}
+
+
+#new_device{
+  display: none;
+}
+
+
 
 .login_form{
 	text-align: center;
@@ -81,11 +168,18 @@ main {
 
 
 footer {
+
+	grid-area: footer;
+
+	/* flex */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: space-evenly;
+
 	padding: 10px;
+
+	/* visuals */
 	background: #666666;
 	color: white;
 }
@@ -114,8 +208,6 @@ footer {
 
   padding: 10px;
 
-
-
 	text-align: center;
 
 	background: white;
@@ -130,20 +222,20 @@ footer {
 
 /* The Modal (background) */
 .modal {
-		display: none;
+	display: none;
 
-		justify-content: center;
-		align-items: center;
+	justify-content: center;
+	align-items: center;
 
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
 /* Modal Content/Box */
@@ -177,10 +269,10 @@ footer {
 input[type="image"]{
 	width: 30px;
 	height: 30px;
-	
+
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
   .wrapper {
     margin: 0;
   }

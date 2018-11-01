@@ -15,7 +15,6 @@ var MongoClient = require('mongodb').MongoClient;
 // Custom modules
 var credentials = require('./credentials');
 var misc = require('./misc');
-var routing = require("./routing");
 
 // Object containing all the devices, initially populated by a MySQL DB
 var devices = {};
@@ -85,40 +84,6 @@ function checkAuth(req, res, next) {
     next();
   }
 }
-
-
-
-////////////
-// CAMERA //
-///////////
-
-/*
-var MjpegCamera = require('mjpeg-camera');
-var FileOnWrite = require('file-on-write');
-
-// Create a writable stream to generate files
-var fileWriter = new FileOnWrite({
-  path: './public/images',
-  ext: '.jpeg',
-  filename: function(frame) {
-    return frame.name;
-  },
-  transform: function(frame) {
-    return frame.data;
-  }
-});
-
-// Create an MjpegCamera instance
-var camera = new MjpegCamera({
-  name: 'main',
-  user: misc.webcam_username,
-  password: misc.webcam_password,
-  url: 'http://192.168.1.11:8080/video'
-});
-*/
-
-
-
 
 
 
@@ -324,20 +289,6 @@ io.sockets.on('connection', function (socket) {
       mqtt_client.publish(inbound_JSON_message[id].command_topic, inbound_JSON_message[id].state);
     }
   });
-
-  /*
-  // Experimental stuff with the camera
-  socket.on("start_camera", function(inbound_JSON_message) {
-    console.log("start_camera");
-    camera.pipe(fileWriter);
-    camera.start();
-  });
-
-  socket.on("stop_camera", function(inbound_JSON_message) {
-    console.log("stop_camera");
-    camera.stop();
-  });
-  */
 
 
 

@@ -4,7 +4,8 @@
 <head>
   <% include partials/head %>
 
-  <link rel="stylesheet" type="text/css" href="css/show_devices.css">
+  <!-- Additional stylesheets -->
+  <!-- <link rel="stylesheet" type="text/css" href="css/show_devices.css"> -->
 
 </head>
 <body>
@@ -16,76 +17,78 @@
     </header>
 
     <main>
-      <div id="floorplan_wrapper" class="floorplan_wrapper">
-        <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
+      <div class="floorplan_wrapper_outer">
+        <div id="floorplan_wrapper" class="floorplan_wrapper">
+          <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
 
-        <!-- Image of the new device -->
-        <div id="new_device" class="device_wrapper">
-          <img id="new_device_image" class="device_image" src="images/devices/light_off.svg">
-        </div>
+          <!-- Image of the new device -->
+          <div id="new_device" class="device_wrapper">
+            <img id="new_device_image" class="device_image" src="images/devices/light_off.svg">
+          </div>
 
-        <!-- The modal for the new device -->
-        <div id="device_modal" class="device_modal">
-          <div class="device_modal_inner"> <!-- No idea why this div is needed -->
+          <!-- The modal for the new device -->
+          <div id="device_modal" class="device_modal">
+            <div class="device_modal_inner"> <!-- No idea why this div is needed -->
 
-            Add / Edit device<br><br>
+              Add / Edit device<br><br>
 
-            <!-- Select type of device -->
-            <!-- This will decide what info is relevant to ask -->
-            <select id="type_select" name="type">
-              <option value="" selected disabled hidden>Type</option>
+              <!-- Select type of device -->
+              <!-- This will decide what info is relevant to ask -->
+              <select id="type_select" name="type">
+                <option value="" selected disabled hidden>Type</option>
 
-              <option value="light">Light</option>
-              <option value="lock">Lock</option>
-              <option value="fan">Fan</option>
-              <option value="heater">Heater</option>
-              <option value="switch">Generic switch</option>
+                <option value="light">Light</option>
+                <option value="lock">Lock</option>
+                <option value="fan">Fan</option>
+                <option value="heater">Heater</option>
+                <option value="switch">Generic switch</option>
 
-              <option value="temperature">Temperature sensor</option>
-              <option value="humidity">Humidity sensor</option>
-              <option value="power">Power monitor</option>
+                <option value="temperature">Temperature sensor</option>
+                <option value="humidity">Humidity sensor</option>
+                <option value="power">Power monitor</option>
 
-              <option value="sensor">Generic sensor</option>
+                <option value="sensor">Generic sensor</option>
 
-              <option value="camera">Camera</option>
+                <option value="camera">Camera</option>
 
-              <option value="other">Other</option>
-            </select><br>
+                <option value="other">Other</option>
+              </select><br>
 
-            <!-- Info common to all devices -->
-            <input type="hidden" id="id_input" name="id" >
-            <input type="hidden" id="position_x_input" name="position_x">
-            <input type="hidden" id="position_y_input" name="position_y">
+              <!-- Info common to all devices -->
+              <input type="hidden" id="id_input" name="id" >
+              <input type="hidden" id="position_x_input" name="position_x">
+              <input type="hidden" id="position_y_input" name="position_y">
 
 
-            <div id="specific_data_inputs">
+              <div id="specific_data_inputs">
 
-              <!-- MQTT info -->
-              <input class="specific_input" type="text" id="status_topic_input" name="status_topic" placeholder="Status topic"><br>
-              <input class="specific_input" type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
-              <input class="specific_input" type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
-              <input class="specific_input" type="text" id="payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
+                <!-- MQTT info -->
+                <input class="specific_input" type="text" id="status_topic_input" name="status_topic" placeholder="Status topic"><br>
+                <input class="specific_input" type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
+                <input class="specific_input" type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
+                <input class="specific_input" type="text" id="payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
 
-              <!-- Camera info -->
+                <!-- Camera info -->
+
+              </div>
+
+              <!-- Buttons -->
+              <input type="button" id="add_button" value="Create" onclick="add_device_ws()">
+              <input type="button" id="submit_button" value="Submit" onclick="edit_device_ws()">
+              <input type="button" id="delete_button" value="Delete" onclick="delete_device_ws()">
+              <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
 
             </div>
-
-            <!-- Buttons -->
-            <input type="button" id="add_button" value="Create" onclick="add_device_ws()">
-            <input type="button" id="submit_button" value="Submit" onclick="edit_device_ws()">
-            <input type="button" id="delete_button" value="Delete" onclick="delete_device_ws()">
-            <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
-
           </div>
-        </div>
 
+        </div> <!-- end of floorplan wrapper -->
+      </div> <!-- end of floorplan wrapper outer -->
+
+      <div class="controls">
+        <input type="image" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
       </div>
-    </main>
 
-    <div class="controls">
-      <!--<input type="button" value="Manage entities" onclick="window.location.href='manage_devices'">-->
-      <input type="image" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
-    </div>
+    </main>
 
     <footer>
       <% include partials/footer %>
