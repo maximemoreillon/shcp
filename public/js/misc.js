@@ -56,7 +56,7 @@ function toggle_device_state(id){
   outbound_JSON_message[id] = {};
   outbound_JSON_message[id].command_topic = devices[id].command_topic;
 
-  // Just send the opposite state (been toggled)
+  // Just send the opposite state (it has been toggled)
   if(devices[id].state == devices[id].payload_on) {
     outbound_JSON_message[id].state = devices[id].payload_off;
   }
@@ -68,7 +68,9 @@ function toggle_device_state(id){
   socket.emit('front_to_mqtt', outbound_JSON_message);
 }
 
+
 window.onload = function(){
+  // NOTE: SHOULD THIS BE HERE?
   // Open device modal if floorplan clicked while in edit mode
 
   var floorplan = document.getElementById('floorplan');
@@ -82,6 +84,7 @@ window.onload = function(){
 
 function make_handler_for_onclick(id) {
   // Creates a handler for onclick events later
+  // TODO: MAKE COMPACT
 
   return function() {
 

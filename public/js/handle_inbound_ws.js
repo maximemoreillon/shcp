@@ -1,3 +1,5 @@
+// This file contains responses to socketio events
+
 var socket = io();
 var devices = {};
 
@@ -5,7 +7,6 @@ socket.on('connect', function() {
   console.log('WS connected');
   document.getElementById('disconnected_modal').style.display = "none";
 });
-
 
 socket.on('disconnect', function(){
   console.log('WS disconnected');
