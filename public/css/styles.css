@@ -99,9 +99,6 @@ main {
 }
 
 .floorplan_wrapper {
-  /* debugging */
-  outline: 1px solid red;
-
   /* needs to be relative for device positioning */
   position: relative;
 
@@ -269,7 +266,7 @@ footer {
 .control{
 
   cursor: pointer;
-  
+
 	width: 30px;
 	height: 30px;
 

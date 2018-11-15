@@ -141,7 +141,7 @@ function make_handler_for_onclick(id) {
       var device_modal = document.getElementById('device_modal');
 
       // don't show the new device since it's an edit of an existing one
-      document.getElementById('new_device').style.display = "none";
+      document.getElementById('new_device_image').style.display = "none";
 
       // Display the modal at the right position
       device_modal.style.display = "flex";
@@ -234,9 +234,6 @@ function restore_device_image() {
 
   if(device_id != "new_device" && device_id != '') {
     // Updates the new image when the select changes
-    var device = document.getElementById(device_id);
-    var device_image = device.getElementsByClassName("device_image")[0];
-
-    device_image.src = get_device_image(devices[device_id]);
+    document.getElementById(device_id).src = get_device_image_src(devices[device_id]);
   }
 }
