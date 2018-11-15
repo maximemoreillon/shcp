@@ -4,7 +4,7 @@ function close_modal(){
   // Find more elegant way to do this
   // Basically close all modals except the disconnection modal
   document.getElementById('device_modal').style.display = "none";
-  document.getElementById('new_device').style.display = "none";
+  document.getElementById('new_device_image').style.display = "none";
   document.getElementById('camera_modal').style.display = "none";
   document.getElementById('sensor_info_modal').style.display = "none";
 
@@ -209,9 +209,9 @@ function open_device_modal(evt) {
 
 
   // Display something where the device will be
-  new_device_wrapper.style.display = "block";
-  new_device_wrapper.style.left = mouse_pos.x.toString()+"%";
-  new_device_wrapper.style.top = mouse_pos.y.toString()+"%";
+  new_device_image.style.display = "block";
+  new_device_image.style.left = mouse_pos.x.toString()+"%";
+  new_device_image.style.top = mouse_pos.y.toString()+"%";
   new_device_image.src = "images/devices/new_device.svg";
 
   // Manage buttons visibility

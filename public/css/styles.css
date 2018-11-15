@@ -27,8 +27,9 @@ body {
 
 .wrapper {
 
-	/* sizing */
 	margin: 25px;
+
+  /* sizing */
 	width: 100%;
 	max-width: 1000px;
 
@@ -39,7 +40,7 @@ body {
 		'main'
 		'footer';
 	grid-template-columns: auto;
-	grid-template-rows: 125px auto 80px;
+	grid-template-rows: auto auto auto;
 
 	/* additional visuals */
 	background: white;
@@ -75,8 +76,8 @@ header {
 }
 
 @keyframes rotating {
-	from { transform: rotate(0deg);}
-	to { transform: rotate(360deg);}
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
 }
 
 .title {
@@ -87,75 +88,73 @@ header {
 
 main {
 	grid-area: main;
-
 	padding: 30px;
-
 }
 
 .floorplan_wrapper_outer {
-
-  /* flex */
+  /* flex for centering */
 	display: flex;
-	flex-direction: column;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
 }
 
 .floorplan_wrapper {
+  /* debugging */
+  outline: 1px solid red;
 
   /* needs to be relative for device positioning */
   position: relative;
+
+  /* Prevent device images from overflowing */
+  /* overflow: hidden; */
 }
 
 .floorplan {
 
-  width: 30vmin;
+  /* Sizing */
 
 }
 
-.device_wrapper {
-  position: absolute;
-
-  width: 5vmin;
-  height: 5vmin;
-}
 
 .device_image {
 
   /* ensure above rest */
-  z-index: 100;
+  z-index: 10;
 
-  /* as big as its container */
-  width: 100%;
-  height: 100%;
+  /* positioning */
+  position: absolute;
 
-  /* image location set by its center */
-  position: relative;
-  left: -50%;
-  top: -50%;
+  /* Position by center and not by corner */
+  transform: translate(-50%,-50%);
 
+  /* Sizing, make it responsive */
+  width: 30px;
+
+  /* Misc visual */
   cursor: pointer;
+
+  /* if icon */
+  /* transition: color 0.5s; */
+  /* font-size: 300%; */
 }
 
 .device_edit {
-
   animation-name: wiggle;
   animation-duration: 500ms;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-
 }
 
 @keyframes wiggle {
-  0%  {transform: rotate(0deg);}
-  25% {transform: rotate(-15deg);}
-  50% {transform: rotate(0deg);}
-  75% {transform: rotate(15deg);}
-  100% {transform: rotate(0deg);}
+  0%  {transform: translate(-50%,-50%) rotate(0deg);}
+  25% {transform: translate(-50%,-50%) rotate(-15deg);}
+  50% {transform: translate(-50%,-50%) rotate(0deg);}
+  75% {transform: translate(-50%,-50%) rotate(15deg);}
+  100% {transform: translate(-50%,-50%) rotate(0deg);}
 }
 
 
-#new_device{
+#new_device_image{
   display: none;
 }
 
@@ -193,7 +192,7 @@ footer {
   position: absolute;
 
 	/* Be on top of devices */
-	z-index: 10;
+	z-index: 100;
 
 }
 
@@ -224,6 +223,7 @@ footer {
 .modal {
 	display: none;
 
+  /* flex for when displayed */
 	justify-content: center;
 	align-items: center;
 
@@ -240,11 +240,11 @@ footer {
 
 /* Modal Content/Box */
 .modal_content {
-    background-color: #fefefe;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 50%; /* Could be more or less, depending on screen size */
-		text-align: center;
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%; /* Could be more or less, depending on screen size */
+	text-align: center;
 }
 
 .modal_content img {
@@ -266,14 +266,20 @@ footer {
 	text-align: center;
 }
 
-input[type="image"]{
+.control{
+
+  cursor: pointer;
+  
 	width: 30px;
 	height: 30px;
 
 }
 
 @media screen and (max-width: 768px) {
+  /* for small displays */
+
   .wrapper {
+    /* remove margins */
     margin: 0;
   }
 }

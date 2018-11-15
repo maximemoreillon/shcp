@@ -37,7 +37,6 @@ socket.on('delete_devices_in_front_end', function (inbound_JSON_message) {
 
 socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
   // edit the device according to the all entries of the JSON_message
-
   console.log('edit_devices_in_front_end');
 
   for(var id in inbound_JSON_message) {
@@ -48,8 +47,7 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
 
     // Set the image accordingly
     // TODO: Find way to deal with images
-    var device_wrapper = document.getElementById(id);
-    var device_image = device_wrapper.getElementsByClassName("device_image")[0];
+    var device_image = document.getElementById(id);
     device_image.src = get_device_image_src(devices[id]);
   }
 });
@@ -69,18 +67,14 @@ function create_devices_from_message(inbound_JSON_message){
     devices[id] = inbound_JSON_message[id];
 
     // Create the image
-    var device_wrapper = document.createElement('div');
-    device_wrapper.id = String(id); // Not optimal
-    device_wrapper.className = "device_wrapper";
-    device_wrapper.style.left = String(devices[id].position.x) + "%";
-    device_wrapper.style.top = String(devices[id].position.y) + "%";
-    floorplan_wrapper.appendChild(device_wrapper);
-
     var device_image = document.createElement('img');
+    device_image.id = String(id); // Not optimal
     device_image.className = "device_image";
     device_image.src = get_device_image_src(devices[id]);
+    device_image.style.left = String(devices[id].position.x) + "%";
+    device_image.style.top = String(devices[id].position.y) + "%";
     device_image.onclick = make_handler_for_onclick(id);
-    device_wrapper.appendChild(device_image);
+    floorplan_wrapper.appendChild(device_image);
   }
 }
 
