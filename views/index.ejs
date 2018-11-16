@@ -35,6 +35,7 @@
               <select id="type_select" name="type">
                 <option value="" selected disabled hidden>Type</option>
 
+                <!-- MQTT devices -->
                 <option value="light">Light</option>
                 <option value="lock">Lock</option>
                 <option value="fan">Fan</option>
@@ -44,12 +45,12 @@
                 <option value="temperature">Temperature sensor</option>
                 <option value="humidity">Humidity sensor</option>
                 <option value="power">Power monitor</option>
-
                 <option value="sensor">Generic sensor</option>
 
+                <!-- Non MQTT devices -->
                 <option value="camera">Camera</option>
-
                 <option value="other">Other</option>
+                
               </select><br>
 
               <!-- Info common to all devices -->
@@ -80,6 +81,7 @@
 
       <div class="controls">
         <img class="control" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
+
       </div>
 
     </main>
@@ -121,8 +123,9 @@
   <!-- JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="js/devices_icons.js"></script>
+  <script src="js/misc.js"></script>
   <script src="js/handle_inbound_ws.js"></script>
   <script src="js/handle_outbound_ws.js"></script>
-  <script src="js/misc.js"></script>
+
 </body>
 </html>

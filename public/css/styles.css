@@ -9,13 +9,14 @@
 body {
 
 	margin: 0px;
-  min-height: 100vh;
 
+  /* doesn't work well on mobile */
+  min-height: 100vh;
 
 	/* flex */
 	display: flex;
 	justify-content: center;
-	align-items: stretch;
+	align-items: flex-start;
 
 	/* visuals */
 	background-color: #cccccc;
@@ -29,9 +30,8 @@ body {
 
 	margin: 25px;
 
-  /* sizing */
-	width: 100%;
-	max-width: 1000px;
+  width: 100%;
+  max-width: 800px;
 
 	/* Grid */
 	display: grid;
@@ -64,13 +64,13 @@ header {
 	box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
 
-.logo_wrapper {
+.logo_container {
 	width: 75px;
 	height: 75px;
+  overflow: hidden;
 }
 
 .logo {
-
 	max-height:100%;
 	animation: rotating 50s linear infinite;
 }
@@ -88,7 +88,7 @@ header {
 
 main {
 	grid-area: main;
-	padding: 30px;
+	padding: 50px 100px;
 }
 
 .floorplan_wrapper_outer {
@@ -96,6 +96,7 @@ main {
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
+
 }
 
 .floorplan_wrapper {
@@ -104,11 +105,15 @@ main {
 
   /* Prevent device images from overflowing */
   /* overflow: hidden; */
+
+  width: 30%;
 }
 
 .floorplan {
+  /* This is an <img> */
 
   /* Sizing */
+  width: 100%;
 
 }
 
@@ -124,8 +129,8 @@ main {
   /* Position by center and not by corner */
   transform: translate(-50%,-50%);
 
-  /* Sizing, make it responsive */
-  width: 30px;
+  /* Sizing */
+  width: 15%;
 
   /* Misc visual */
   cursor: pointer;
@@ -201,7 +206,6 @@ footer {
 	top: 20px;
 	left: 20px;
 
-
   padding: 10px;
 
 	text-align: center;
@@ -263,7 +267,7 @@ footer {
 	text-align: center;
 }
 
-.control{
+.control {
 
   cursor: pointer;
 
@@ -274,9 +278,21 @@ footer {
 
 @media screen and (max-width: 768px) {
   /* for small displays */
-
   .wrapper {
     /* remove margins */
     margin: 0;
+  }
+  header {
+    padding: 10px;
+  }
+  .logo_container{
+    width: 40px;
+    height: 40px;
+  }
+  .title{
+    font-size: 125%;
+  }
+  main {
+    padding: 25px 0;
   }
 }
