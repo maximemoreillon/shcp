@@ -39,6 +39,15 @@ function get_device_image_src(device){
       }
       break;
 
+    case "heater":
+      if(device.state == device.payload_on) {
+        device_image_src = "images/devices/heater_on.svg";
+      }
+      else {
+        device_image_src = "images/devices/heater_off.svg";
+      }
+      break;
+
     case "camera":
       device_image_src = "images/devices/cctv.svg";
       break;

@@ -68,6 +68,31 @@ function toggle_device_state(id){
   socket.emit('front_to_mqtt', outbound_JSON_message);
 }
 
+function show_sensor_info(id){
+  // Open up the device info modal
+  var sensor_info_modal = document.getElementById("sensor_info_modal");
+  var sensor_info = document.getElementById("sensor_info");
+  sensor_info_modal.style.display = "flex";
+
+  // For now just display raw data
+  // TODO: Deal with units
+  var state_json = JSON.parse(devices[id].state);
+  var keys = Object.keys(state_json);
+
+  sensor_info.innerHTML = "";
+  if(keys.length > 0){
+    keys.forEach(function(key){
+      sensor_info.innerHTML += key;
+      sensor_info.innerHTML += ": ";
+      sensor_info.innerHTML += state_json[key];
+      sensor_info.innerHTML += "<br>";
+    });
+  }
+  else {
+    sensor_info.innerHTML += state_json;
+  }
+}
+
 
 window.onload = function(){
   // NOTE: SHOULD THIS BE HERE?
@@ -95,32 +120,7 @@ function make_handler_for_onclick(id) {
         toggle_device_state(id)
       }
       else if(["temperature","humidity","power","sensor"].includes(devices[id].type)){
-
-        // Open up the device info modal
-        var sensor_info_modal = document.getElementById("sensor_info_modal");
-        var sensor_info = document.getElementById("sensor_info");
-        sensor_info_modal.style.display = "flex";
-
-        // For now just display raw data
-
-        var state_json = JSON.parse(devices[id].state);
-        var keys = Object.keys(state_json);
-
-        sensor_info.innerHTML = "";
-        if(keys.length > 0){
-          keys.forEach(function(key){
-            sensor_info.innerHTML += key;
-            sensor_info.innerHTML += ": ";
-            sensor_info.innerHTML += state_json[key];
-            sensor_info.innerHTML += "<br>";
-          });
-        }
-        else {
-          sensor_info.innerHTML += state_json;
-        }
-
-
-
+        show_sensor_info(id);
       }
 
       else if(devices[id].type == "camera"){
