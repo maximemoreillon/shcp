@@ -5,12 +5,12 @@ var devices = {};
 
 socket.on('connect', function() {
   console.log('WS connected');
-  close_this_modal('disconnected_modal');
+  close_modal_by_ID('disconnected_modal');
 });
 
 socket.on('disconnect', function(){
   console.log('WS disconnected');
-  open_modal('disconnected_modal');
+  open_modal_by_ID('disconnected_modal');
 });
 
 socket.on('create_all_devices', function (inbound_JSON_message) {

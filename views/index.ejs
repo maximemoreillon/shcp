@@ -99,9 +99,9 @@
   </div>
 
   <!-- Sensor info modal -->
-  <div id="sensor_info_modal" class="modal_wrapper">
+  <div id="sensor_info_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
     <div class="modal_container">
-      <i class="fas fa-times modal_close_button" onclick="close_this_modal('sensor_info_modal')"></i>
+      <i class="fas fa-times modal_close_button" onclick="close_modal_by_ID('sensor_info_modal')"></i>
       Sensor info
       <div id="sensor_info">
       </div>

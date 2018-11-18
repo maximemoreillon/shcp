@@ -67,7 +67,7 @@ function toggle_device_state(id){
 
 function show_sensor_info(id){
   // Open up the device info modal
-  open_modal("sensor_info_modal");
+  open_modal_by_ID("sensor_info_modal");
 
   var sensor_info = document.getElementById("sensor_info");
 
