@@ -48,7 +48,6 @@
                 <option value="sensor">Generic sensor</option>
 
                 <!-- Non MQTT devices -->
-                <option value="camera">Camera</option>
                 <option value="other">Other</option>
 
               </select><br>
@@ -81,7 +80,6 @@
 
       <div class="controls">
         <img class="control" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
-
       </div>
 
     </main>
@@ -94,39 +92,31 @@
 
   <!-- Modals -->
   <!-- Modal for connection -->
-  <div id="disconnected_modal" class="modal">
-    <div class="modal_content">
+  <div id="disconnected_modal" class="modal_wrapper">
+    <div class="modal_container">
       NO CONNECTION
     </div>
   </div>
 
   <!-- Sensor info modal -->
-  <div id="sensor_info_modal" class="modal">
-    <div class="modal_content">
+  <div id="sensor_info_modal" class="modal_wrapper">
+    <div class="modal_container">
+      <i class="fas fa-times modal_close_button" onclick="close_this_modal('sensor_info_modal')"></i>
       Sensor info
       <div id="sensor_info">
-      </div><br>
-      <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
+      </div>
     </div>
   </div>
-
-  <!-- Camera modal -->
-  <div id="camera_modal" class="modal">
-    <div class="modal_content">
-      <img id="camera_image" src="images/devices/cctv.svg"><br><br>
-      <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
-    </div>
-  </div>
-
-
 
   <!-- JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <script src="js/modals.js"></script>
   <script src="js/polyfill.js"></script>
   <script src="js/devices_icons.js"></script>
   <script src="js/misc.js"></script>
   <script src="js/handle_inbound_ws.js"></script>
   <script src="js/handle_outbound_ws.js"></script>
+
 
 </body>
 </html>

@@ -5,11 +5,8 @@ function close_modal(){
   // Basically close all modals except the disconnection modal
   document.getElementById('device_modal').style.display = "none";
   document.getElementById('new_device_image').style.display = "none";
-  document.getElementById('camera_modal').style.display = "none";
-  document.getElementById('sensor_info_modal').style.display = "none";
 
-  // TODO: Find proper location for this
-  socket.emit('stop_camera', 'nothing');
+  close_modal_by_ID('sensor_info_modal');
 
   restore_device_image();
 }
@@ -70,9 +67,9 @@ function toggle_device_state(id){
 
 function show_sensor_info(id){
   // Open up the device info modal
-  var sensor_info_modal = document.getElementById("sensor_info_modal");
+  open_modal("sensor_info_modal");
+
   var sensor_info = document.getElementById("sensor_info");
-  sensor_info_modal.style.display = "flex";
 
   // For now just display raw data
   // TODO: Deal with units
@@ -122,14 +119,6 @@ function make_handler_for_onclick(id) {
       else if(["temperature","humidity","power","sensor"].includes(devices[id].type)){
         show_sensor_info(id);
       }
-
-      else if(devices[id].type == "camera"){
-        // Open up the camera modal
-        var camera_modal = document.getElementById("camera_modal");
-        camera_modal.style.display = "flex";
-        socket.emit('start_camera', 'nothing');
-      }
-
     }
 
     else if(mode == "edit") {

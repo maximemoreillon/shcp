@@ -1,0 +1,79 @@
+:root {
+  /* Sync all transitions */
+  --modal_transition_duration: 0.5s;
+}
+
+.modal_wrapper{
+
+  /* positioning */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+
+  /* sizing */
+  height: 100%;
+  width: 100%;
+
+  /* Coloring */
+  background-color: #333333aa;
+
+  /* flex for inner elements */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Stuff that varies with JS */
+  /* visibility instead of display because of transitions */
+  /* This changes at the end of the transition */
+  visibility: hidden;
+
+  /* Opacity of modal container background */
+  opacity: 0;
+  /* End of stuff that varies with JS */
+
+  /* animations */
+  transition: opacity var(--modal_transition_duration), visibility var(--modal_transition_duration);
+}
+
+.modal_container{
+  /* Relative position for close button positioning */
+  position: relative;
+
+  /* Stuff that changes with JS */
+  /* Do not show content by default */
+  opacity: 0;
+
+  /* sizing */
+  width: 50%;
+  /* End of stuff that varies with JS */
+
+  /* animations */
+  transition:
+    opacity var(--modal_transition_duration),
+    width var(--modal_transition_duration);
+
+  /* Additional stuff, not necessary for function */
+  padding: 25px;
+
+  /* Coloring */
+  background-color: #ffffff;
+
+
+  }
+
+
+.modal_close_button {
+
+  /* positioning */
+  position: absolute;
+
+  /* match padding */
+  /* TODO: This should be improved */
+  right: 25px;
+  top: 25px;
+
+  /* visuals */
+  cursor: pointer;
+  font-size: 150%;
+}
