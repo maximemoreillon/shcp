@@ -1,12 +1,8 @@
-:root {
-  /* Sync all transitions */
-  --modal_transition_duration: 0.5s;
-}
 
 .modal_wrapper{
 
   /* positioning */
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   z-index: 10;
@@ -33,7 +29,7 @@
   /* End of stuff that varies with JS */
 
   /* animations */
-  transition: opacity var(--modal_transition_duration), visibility var(--modal_transition_duration);
+  transition: 0.5s;
 }
 
 .modal_container{
@@ -45,22 +41,21 @@
   opacity: 0;
 
   /* sizing */
-  width: 50%;
+  width: 25%;
   /* End of stuff that varies with JS */
 
   /* animations */
-  transition:
-    opacity var(--modal_transition_duration),
-    width var(--modal_transition_duration);
+  transition: 0.5s;
 
   /* Additional stuff, not necessary for function */
   padding: 25px;
 
-  /* Coloring */
+  /* Misc visuals */
   background-color: #ffffff;
+  text-align: center;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 
-
-  }
+}
 
 
 .modal_close_button {
@@ -68,12 +63,18 @@
   /* positioning */
   position: absolute;
 
-  /* match padding */
-  /* TODO: This should be improved */
-  right: 25px;
-  top: 25px;
+  /* Top right corner */
+  right: 0;
+  top: 0;
+
+  padding: 25px;
 
   /* visuals */
   cursor: pointer;
   font-size: 150%;
+}
+
+.modal_title {
+  font-size: 150%;
+  margin-bottom: 5px;
 }
