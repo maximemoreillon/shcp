@@ -9,15 +9,39 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="69.323914mm"
+   height="94.252197mm"
+   viewBox="0 0 69.323914 94.252197"
    version="1.1"
-   id="svg4485"
-   width="221.4292"
-   height="747.30286"
-   viewBox="0 0 221.4292 747.30286"
-   sodipodi:docname="floorplan_v3.svg"
-   inkscape:version="0.92.1 r15371">
+   id="svg1007"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="floorplan.svg">
+  <defs
+     id="defs1001" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="-0.56883705"
+     inkscape:cy="220.11548"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
   <metadata
-     id="metadata4491">
+     id="metadata1004">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -28,46 +52,15 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <defs
-     id="defs4489" />
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     id="namedview4487"
-     showgrid="false"
-     inkscape:zoom="1.0229192"
-     inkscape:cx="-2.6358386"
-     inkscape:cy="341.45546"
-     inkscape:window-x="-8"
-     inkscape:window-y="178"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg4485"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0" />
-  <path
-     style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     d="M 1.5,598.18614 V 477.94203 h 3.421581 v -8.55395 H 1.5 V 301.18075 H 44.514151 V 161.44586 H 1.6222 V 12.423826 H 44.521059 V 1.609189 H 101.63671 V 134.36577 h 8.64079 V 93.319761 h 6.63973 v -9.04275 h -6.35437 V 1.5 h 109.19351 v 82.960311 h -57.44211 v 8.79835 h 57.43367 v 87.983489 h -109.1248 v -2.85153 h -8.29516 v 13.78836 h 8.14324 v -2.68838 h 109.28516 v 47.52782 h -109.499 v -5.61346 h -7.94296 v 16.00811 h 117.55572 v 221.7835 h -5.42784 v 9.41847 h 5.4869 v 257.75491 h -29.81074 v 9.43293 H 68.888105 V 606.98448 H 110.86837 V 535.90351 H 83.836675 V 469.4558 H 53.161854 v 8.46798 h 22.466071 v 57.80691 h -16.15829 v 62.55936 z"
-     id="path4495"
-     inkscape:connector-curvature="0"
-     sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
-  <flowRoot
-     xml:space="preserve"
-     id="flowRoot4503"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:Calibri;-inkscape-font-specification:Calibri;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"><flowRegion
-       id="flowRegion4505"><rect
-         id="rect4507"
-         width="76.252357"
-         height="43.014153"
-         x="66.476418"
-         y="366.04108" /></flowRegion><flowPara
-       id="flowPara4509">Livia</flowPara></flowRoot></svg>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(184.34053,-9.4810414)">
+    <path
+       id="path4999-6"
+       style="fill:#535353;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -125.46309,9.4810414 h 1.50373 v 8.9791566 h 8.94274 v 85.273042 h -7.52384 v -1.27 h 6.25384 V 57.308392 h -1.59062 v -1.27 h 1.59062 v -9.504223 h -20.19882 v 9.504223 h 1.72467 v 1.27 h -8.87793 v 11.336689 h -1.27 V 57.308392 h -7.26797 -0.69735 v -1.27 h 0.69735 V 30.786701 h 1.27 v 14.477468 h 1.50354 v 1.27 h -1.50354 v 9.504223 h 13.15123 V 45.264169 h 21.46882 V 19.730198 h -8.94274 v -8.979157 h -0.23373 z m -35.43878,0 h 9.36047 v 1.2699996 h -9.36047 z m 35.43878,0 h -14.72093 v 1.2699996 h 14.72093 z m -17.15528,92.9821986 v 1.27 h 20.07791 v -1.27 z m -29.57762,0 h 20.28481 v 1.27 h -20.28481 z m 28.55729,-10.492418 h -1.27 v 10.492418 h -7.00248 v 1.27 h 9.29281 v -1.27 h -1.02033 z m -7.9027,-82.4897806 h 11.35738 v 1.2699996 h -3.50726 v 10.669558 h -7.21539 v 1.671394 h -1.27 v -2.941394 h 7.21539 v -9.399558 h -6.58012 z m -9.36047,0 h -1.91905 V 20.150599 h -10.55775 v 17.898626 h -10.96186 v 65.684015 h 12.14454 v -1.27 h -10.87454 V 71.454975 h 21.51961 V 57.308394 h 0.71231 v -1.270002 h -0.71231 v -4.856986 h -1.27 v 19.003566 h -20.24961 v -16.49734 h 10.71082 v -1.27 h -10.71082 V 39.319225 h 20.24961 v 0.880417 h 1.27 v -2.988233 h -1.27 v 0.837816 h -9.28775 V 21.420599 h 9.28775 v 8.619043 h 1.27 V 10.751041 h 0.64905 z"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

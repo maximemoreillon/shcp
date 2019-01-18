@@ -106,13 +106,13 @@ main {
   /* Prevent device images from overflowing */
   /* overflow: hidden; */
 
-  width: 30%;
+  width: 70%;
 }
 
 .floorplan {
   /* This is an <img> */
 
-  /* Sizing */
+  /* Sizing to full available space*/
   width: 100%;
 
 }
@@ -130,7 +130,7 @@ main {
   transform: translate(-50%,-50%);
 
   /* Sizing */
-  width: 15%;
+  width: 8%;
 
   /* Misc visual */
   cursor: pointer;
