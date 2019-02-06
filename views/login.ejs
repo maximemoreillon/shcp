@@ -5,12 +5,20 @@
 </head>
 <body>
 	<div class="wrapper">
-		
+
 		<header>
 			<% include partials/header %>
 		</header>
 
 		<main>
+			<% if( typeof error !== "undefined"){
+        %>
+        <div class="login_error_message">
+          <%= error %>
+        </div>
+        <%
+      }
+      %>
 			<div class="login_form">
 			  <form method="post" action="/login">
 			      <input type="text" name="user" placeholder="Username"><br>

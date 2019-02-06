@@ -1,6 +1,8 @@
 // This file contains responses to socketio events
 
 var socket = io();
+
+// The devices are stored as one object so as to access each device using its id as key
 var devices = {};
 
 socket.on('connect', function() {
@@ -14,7 +16,7 @@ socket.on('disconnect', function(){
 });
 
 socket.on('create_all_devices', function (inbound_JSON_message) {
-  console.log('create_all_devices');
+  console.log('WS create_all_devices');
   destroy_all_devices();
   create_devices_from_message(inbound_JSON_message);
 });
@@ -55,8 +57,7 @@ socket.on('edit_devices_in_front_end', function (inbound_JSON_message) {
 
 
 
-// Some helpfer functions
-
+// helpfer functions
 function create_devices_from_message(inbound_JSON_message){
 
   // Get the floorplan wrapper to add images
@@ -69,7 +70,7 @@ function create_devices_from_message(inbound_JSON_message){
 
     // Create the image
     var device_image = document.createElement('img');
-    device_image.id = String(id); // Not optimal
+    device_image.id = String(id);
     device_image.className = "device_image";
     device_image.src = get_device_image_src(devices[id]);
     device_image.style.left = String(devices[id].position.x) + "%";

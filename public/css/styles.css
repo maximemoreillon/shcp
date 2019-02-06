@@ -89,6 +89,7 @@ header {
 main {
 	grid-area: main;
 	padding: 50px 100px;
+  text-align: center;
 }
 
 .floorplan_wrapper_outer {

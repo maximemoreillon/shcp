@@ -1,79 +1,55 @@
 // Depenedencies
-var fs = require('fs');
+var path = require('path');
 var express = require('express');
 var expressSession = require('express-session')
 var bodyParser = require("body-parser");
 var http = require('http');
-
 var mqtt = require('mqtt');
-
-// Database
+var socketio = require('socket.io');
 var MongoDB = require('mongodb');
-var ObjectID = require('mongodb').ObjectID;
-var MongoClient = require('mongodb').MongoClient;
 
 // Custom modules
-var credentials = require('./credentials');
-var misc = require('./misc');
+var db_config = require ('./config/db_config');
+var misc_config = require('./config/misc_config');
+var credentials = require('./config/credentials');
 
 // Object containing all the devices, initially populated by a MySQL DB
-var devices = {};
 
-// MQTT config
-const mqtt_options = {
-  username: credentials.mqtt_username,
-  password: credentials.mqtt_password
-};
+// MongoDB objects
+var MongoClient = MongoDB.MongoClient;
+var ObjectID = MongoDB.ObjectID;
+
+// Create an instance of express app
+var app = express();
+
+// Instanciate web server
+var http_server = http.Server(app);
+
+// Instanciate Websockets
+var io = socketio(http_server);
 
 // Connect to MQTT
-var mqtt_client  = mqtt.connect('mqtt://192.168.1.2', mqtt_options);
-
-function subscribe_all(){
-  // Subscribe to all topics
-
-  console.log("Subscribing to all MQTT topics");
-
-  for(var id in devices) {
-    if(typeof devices[id].status_topic !== 'undefined'){
-      if(devices[id].status_topic != ""){
-        mqtt_client.subscribe(devices[id].status_topic);
-      }
-    }
+var mqtt_client  = mqtt.connect(
+  'mqtt://192.168.1.2',
+  {
+    username: credentials.mqtt_username,
+    password: credentials.mqtt_password
   }
-}
+);
 
-function unsubscribe_all(){
-  // Subscribe to all topics
+/////////////
+// Helper functions
+////////////
 
-  console.log("Unsubscribing to all MQTT topics");
-  for(var id in devices) {
-    mqtt_client.unsubscribe(devices[id].status_topic);
+function array_to_json(array){
+  var out = {};
+  for(index in array){
+    var id = array[index]["_id"];
+    out[id] = array[index];
+    delete out[id]["_id"];
   }
+  return out;
 }
-
-MongoClient.connect(misc.MongoDB_URL, function(err, db) {
-  if (err) throw err;
-  var dbo = db.db(misc.MongoDB_DB_name);
-  dbo.collection(misc.MongoDB_collection_name).find({}).toArray(function(err, result) {
-    if (err) throw err;
-
-    // destroy all devices
-    devices = {};
-
-    // Local variable
-    result.forEach(function(entry) {
-      var id = entry['_id'];
-      devices[id] = entry;
-      delete devices[id]['_id']; // Not clean
-    });
-
-    // subscribe all
-    subscribe_all();
-
-    db.close();
-  });
-});
-
 
 // Function to check if user is logged in (has a user ID session)
 function checkAuth(req, res, next) {
@@ -85,36 +61,69 @@ function checkAuth(req, res, next) {
   }
 }
 
+function mqtt_subscribe_all() {
+  // Subscribe to all topics
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db(db_config.db_name);
+    dbo.collection(db_config.collection_name).find({}).toArray(function(err, result) {
+      if (err) throw err;
+      db.close();
+
+      // Subscribe to all topics
+      for(index in result) {
+        if(typeof result[index].status_topic !== "undefined" && result[index].status_topic !== ""){
+          console.log(`[MQTT] Subscribing to ${result[index].status_topic}`);
+          mqtt_client.subscribe(result[index].status_topic);
+        }
+      }
+    });
+  });
+}
+
+///////////
+// Init ///
+///////////
+
+mqtt_subscribe_all();
+
 
 
 ////////////////////
 // EXPRESS CONFIG //
 ////////////////////
 
-const app = express();
-
-app.set('views', __dirname + '/views');
-
-// App uses sessions to store session ID and know that theuser is logged in
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressSession({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true
 }));
 
-// App uses bodyparser to parse post requests
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
 
-app.use(express.static(__dirname + '/public'));
-
-// Routing
+// Express routing
 
 app.get('/', checkAuth, function(req, res) {
-  res.render('index.ejs', {
-    // Passingthe variables
+  res.render('index.ejs');
+});
+
+app.get('/dump', checkAuth, function(req, res) {
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db(db_config.db_name);
+    dbo.collection(db_config.collection_name).find({}).toArray(function(err, result) {
+      res.render('dump.ejs', {devices: result});
+      db.close();
+    });
   });
+});
+
+app.get('/login', checkAuth, function(req, res) {
+  res.render('login.ejs');
 });
 
 app.post('/login', function (req, res) {
@@ -123,8 +132,10 @@ app.post('/login', function (req, res) {
     // FOR NOW ONLY ONE USER
     req.session.user_id = 1;
     res.redirect('/');
-  } else {
-    res.send('Bad user/pass');
+  }
+  else {
+    // Improve this!
+    res.render('login.ejs', {error: "Wrong username/password"} );
   }
 });
 
@@ -134,12 +145,12 @@ app.get('/logout', function (req, res) {
 });
 
 
-// Start the web server
-var http_server = http.createServer(app)
-http_server.listen(8080);
+// Run the server
+http_server.listen(misc_config.app_port, function(){
+  console.log(`[HTTP] listening on port ${misc_config.app_port}`);
+});
 
-// Start websocket
-var io = require('socket.io')(http_server);
+
 
 
 ////////////////
@@ -149,68 +160,64 @@ var io = require('socket.io')(http_server);
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
-  // BUG: This can be executed before fetching all devices from the DB
-  console.log('A user connected, sending the devices info by ws');
+  console.log('[WS] User connected, sending the devices info');
 
-  // This sends only to the connecting client
-  socket.emit('create_all_devices', devices);
-
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
+  // Fetch and send all devices to client
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db(db_config.db_name);
+    dbo.collection(db_config.collection_name).find({}).toArray(function(err, find_result){
+      if (err) throw err;
+      db.close();
+      io.sockets.emit('create_all_devices', array_to_json(find_result));
+    });
   });
 
+  socket.on('disconnect', function(){
+    console.log('[WS] user disconnected');
+  });
 
-
+  // Respond to WS messages
   socket.on("add_devices_in_back_end", function(inbound_JSON_message) {
 
     //NOTE: Could think of reading the complete DB again to make sure the devices are in sync
 
-    console.log("add_devices_in_back_end");
+    console.log("[WS] add_devices_in_back_end");
 
-    MongoClient.connect(misc.MongoDB_URL, function(err, db) {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
-      var dbo = db.db(misc.MongoDB_DB_name);
+      var dbo = db.db(db_config.db_name);
 
       var new_devices = [];
       for(id in inbound_JSON_message){
         new_devices.push(inbound_JSON_message[id]);
       }
 
-      dbo.collection(misc.MongoDB_collection_name).insertMany(new_devices, function(err, result) {
+      dbo.collection(db_config.collection_name).insertMany(new_devices, function(err, result) {
         if (err) throw err;
-
-        var outbound_JSON_message = {};
-
-        // edit local variable
-        result.ops.forEach(function(entry) {
-          var id = entry['_id'];
-          devices[id] = entry;
-          delete devices[id]['_id']; // Not clean
-
-          outbound_JSON_message[id] = devices[id];
-        });
-
-        // Send update to front End
-        io.emit('add_devices_in_front_end', outbound_JSON_message);
-
-        // subscribe to MQTT topics
-        // TODO: Subscribe only to the new ones
-        subscribe_all();
-
-
         db.close();
+
+        // Update front end
+        io.emit('add_devices_in_front_end', array_to_json(result.ops));
+
+        //Subscribe to all new topics
+        for(index in result.ops){
+          if(typeof result.ops[index].status_topic !== 'undefined' && result.ops[index].status_topic != "") {
+            console.log(`[MQTT] subscribing to ${result.ops[index].status_topic}`);
+            mqtt_client.subscribe(result.ops[index].status_topic);
+          }
+        }
       });
     });
-
   });
 
 
   socket.on("delete_devices_in_back_end", function(inbound_JSON_message) {
-    console.log("delete_devices_in_back_end");
+    console.log("[WS] delete_devices_in_back_end");
 
-    MongoClient.connect(misc.MongoDB_URL, function(err, db) {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
-      var dbo = db.db(misc.MongoDB_DB_name);
+      var dbo = db.db(db_config.db_name);
 
       var ids = [];
       Object.keys(inbound_JSON_message).forEach(function(entry) {
@@ -219,23 +226,16 @@ io.sockets.on('connection', function (socket) {
 
       var query = { _id: { $in: ids } };
 
-      dbo.collection(misc.MongoDB_collection_name).deleteMany( query , function(err, obj) {
+      dbo.collection(db_config.collection_name).deleteMany( query , function(err, result) {
         if (err) throw err;
+        db.close();
 
-        unsubscribe_all();
-
-        // THIS SHOULD BE DONE BASED ON DB RESULT
-        for(id in inbound_JSON_message){
-          delete devices[id];
-        }
-
-        // Send update to clients
+        // Update front end
+        // TODO: Use result from DB to send info to clients
         io.emit('delete_devices_in_front_end', inbound_JSON_message);
 
-        // Suscribe to all mqtt
-        subscribe_all();
+        // TODO deal with MQTT subscribtions
 
-        db.close();
       });
     });
 
@@ -243,55 +243,50 @@ io.sockets.on('connection', function (socket) {
 
   socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
 
-    console.log("edit_devices_in_back_end");
+    console.log("[WS] edit_devices_in_back_end");
 
-    // TODO: find way to make all ine one query
+    // TODO: get rid of the for loop!!
+
     for(var id in inbound_JSON_message) {
 
-      MongoClient.connect(misc.MongoDB_URL, function(err, db) {
-
+      MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
         if (err) throw err;
-        var dbo = db.db(misc.MongoDB_DB_name);
+        var dbo = db.db(db_config.db_name);
 
         var query = { _id: ObjectID(id) };
+        var action = {};
+        action['$set'] = inbound_JSON_message[id]
 
-        var new_properties = {};
-        new_properties['$set'] = inbound_JSON_message[id]
-
-
-        dbo.collection(misc.MongoDB_collection_name).updateOne(query, new_properties, function(err, res) {
+        dbo.collection(db_config.collection_name).updateOne(query, action, function(err, res) {
           if (err) throw err;
+          dbo.collection(db_config.collection_name).find(query).toArray(function(err, find_result){
+            if (err) throw err;
+            db.close();
 
-          unsubscribe_all();
+            io.sockets.emit('edit_devices_in_front_end', find_result);
 
-          // update local variable
-          for(property in inbound_JSON_message[id]) {
-            devices[id][property] = inbound_JSON_message[id][property];
-          }
-
-          var outbound_JSON_message = {};
-          outbound_JSON_message[id] = inbound_JSON_message[id];
-          io.emit('edit_devices_in_front_end', outbound_JSON_message);
-
-          subscribe_all();
-
-          db.close();
+            // TO DO: Deal with MQTT subscribe
+            for(index in find_result){
+              if(typeof find_result[index].status_topic !== 'undefined' && find_result[index].status_topic != "") {
+                console.log(`[MQTT] subscribing to ${find_result[index].status_topic}`);
+                mqtt_client.subscribe(find_result[index].status_topic);
+              }
+            }
+          });
         });
       });
     }
   });
 
   socket.on("front_to_mqtt", function(inbound_JSON_message) {
+    // Convert WS messages into MQTT messages
 
-    console.log("front_to_mqtt");
+    console.log("[WS] front_to_mqtt");
 
     for(var id in inbound_JSON_message) {
       mqtt_client.publish(inbound_JSON_message[id].command_topic, inbound_JSON_message[id].state);
     }
   });
-
-
-
 }); // end of socket on connect
 
 
@@ -300,52 +295,31 @@ io.sockets.on('connection', function (socket) {
 //////////
 
 mqtt_client.on('connect', function () {
-  console.log("MQTT connected");
+  // Callback when MQTT is connected
+
+  console.log("[MQTT] connected");
 });
 
 
 mqtt_client.on('message', function (status_topic, payload) {
+  // Callback for MQTT messages
 
-  console.log("MQTT message arrived on " + status_topic + ": " + payload);
+  console.log("[MQTT] message arrived on " + status_topic + ": " + payload);
 
-  // Translate the MQTT message into JSON message
-  var inbound_JSON_message = {};
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db(db_config.db_name);
 
-  // Find the devices that have a matching MQTT status topic
-  for(var id in devices) {
-    if(devices[id].status_topic == status_topic) {
-      inbound_JSON_message[id] = {};
-      inbound_JSON_message[id].state = payload.toString();
-    }
-  }
+    var query = { status_topic: String(status_topic) };
+    var action = { $set: {state: String(payload)} };
 
-  for(var id in inbound_JSON_message) {
-
-    MongoClient.connect(misc.MongoDB_URL, function(err, db) {
-
+    dbo.collection(db_config.collection_name).updateMany( query, action, function(err, update_result) {
       if (err) throw err;
-      var dbo = db.db(misc.MongoDB_DB_name);
-
-      var new_properties = {};
-      new_properties['$set'] = inbound_JSON_message[id];
-
-      var query = { _id: ObjectID(id) };
-
-      dbo.collection(misc.MongoDB_collection_name).updateOne(query, new_properties, function(err, res) {
+      dbo.collection(db_config.collection_name).find(query).toArray(function(err, find_result){
         if (err) throw err;
-
-        // Update the local variable
-        for(var property in inbound_JSON_message[id]){
-          devices[id][property] = inbound_JSON_message[id][property];
-        }
-
-        // Update the front end
-        var outbound_JSON_message = {};
-        outbound_JSON_message[id] = inbound_JSON_message[id];
-        io.sockets.emit('edit_devices_in_front_end', outbound_JSON_message);
-
         db.close();
+        io.sockets.emit('edit_devices_in_front_end', array_to_json(find_result));
       });
     });
-  }
+  });
 });

@@ -1,0 +1,52 @@
+<!-- views/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include partials/head %>
+
+  <!-- Additional stylesheets -->
+  <!-- <link rel="stylesheet" type="text/css" href="css/show_devices.css"> -->
+
+</head>
+<body>
+
+  <div class="wrapper">
+
+    <header>
+      <% include partials/header %>
+    </header>
+
+    <main>
+      <table>
+        <!-- Headers row -->
+        <% var headers = [];
+        for(var device_index in devices){
+          for(var property in devices[device_index]){
+            if( !headers.includes(property) ){
+              headers.push(property);
+            }
+          }
+        } %>
+        <tr>
+          <% for(var header_index in headers){ %>
+            <th><%= headers[header_index] %></th>
+          <% } %>
+        </tr>
+
+        <!-- normal rows -->
+        <% for(var device_index in devices){ %>
+        <tr>
+          <% for(var header_index in headers) {%>
+            <td><%= devices[device_index][headers[header_index]] %></td>
+          <% } %>
+        </tr>
+        <% } %>
+      </table>
+
+    </main>
+
+
+  </div> <!-- End of wrapper -->
+
+</body>
+</html>

@@ -4,8 +4,16 @@
 <head>
   <% include partials/head %>
 
-  <!-- Additional stylesheets -->
-  <!-- <link rel="stylesheet" type="text/css" href="css/show_devices.css"> -->
+  <!-- Addtional CSS -->
+
+  <!-- Addtional JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <script src="js/modals.js"></script>
+  <script src="js/polyfill.js"></script> <!-- Compatibility for array includes in IE (Surface RT) -->
+  <script src="js/devices_icons.js"></script>
+  <script src="js/misc.js"></script>
+  <script src="js/handle_inbound_ws.js"></script>
+  <script src="js/handle_outbound_ws.js"></script>
 
 </head>
 <body>
@@ -35,20 +43,18 @@
               <select id="type_select" name="type">
                 <option value="" selected disabled hidden>Type</option>
 
-                <!-- MQTT devices -->
+                <!-- Controls -->
                 <option value="light">Light</option>
                 <option value="lock">Lock</option>
                 <option value="fan">Fan</option>
                 <option value="heater">Heater</option>
                 <option value="switch">Generic switch</option>
 
+                <!-- Sensors -->
                 <option value="temperature">Temperature sensor</option>
                 <option value="humidity">Humidity sensor</option>
                 <option value="power">Power monitor</option>
                 <option value="sensor">Generic sensor</option>
-
-                <!-- Non MQTT devices -->
-                <option value="other">Other</option>
 
               </select><br>
 
@@ -59,7 +65,7 @@
 
 
               <div id="specific_data_inputs">
-                <!-- MQTT info -->
+                <!-- MQTT controls -->
                 <input class="specific_input" type="text" id="status_topic_input" name="status_topic" placeholder="Status topic"><br>
                 <input class="specific_input" type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
                 <input class="specific_input" type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
@@ -107,16 +113,6 @@
       </div>
     </div>
   </div>
-
-  <!-- JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-  <script src="js/modals.js"></script>
-  <script src="js/polyfill.js"></script>
-  <script src="js/devices_icons.js"></script>
-  <script src="js/misc.js"></script>
-  <script src="js/handle_inbound_ws.js"></script>
-  <script src="js/handle_outbound_ws.js"></script>
-
 
 </body>
 </html>
