@@ -94,14 +94,14 @@ function open_camera_modal(device){
 }
 
 function close_camera_modal(){
-  open_modal_by_ID("camera_modal");
-  document.getElementById("camera_image").src = "";
+  close_modal_by_ID("camera_modal");
+  document.getElementById("camera_image").src = "images/devices/cctv.svg";
 }
 
 function close_camera_modal_by_background_click(self, event){
   // here, self could be the ID directly
   if(event.target == self){
-    document.getElementById("camera_image").src = "";
+    document.getElementById("camera_image").src = "images/devices/cctv.svg";
     close_modal_by_ID(self.id);
   }
 }
