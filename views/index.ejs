@@ -3,18 +3,6 @@
 <html lang="en">
 <head>
   <% include partials/head %>
-
-  <!-- Addtional CSS -->
-
-  <!-- Addtional JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-  <script src="js/modals.js"></script>
-  <script src="js/polyfill.js"></script> <!-- Compatibility for array includes in IE (Surface RT) -->
-  <script src="js/devices_icons.js"></script>
-  <script src="js/misc.js"></script>
-  <script src="js/handle_inbound_ws.js"></script>
-  <script src="js/handle_outbound_ws.js"></script>
-
 </head>
 <body>
 
@@ -30,59 +18,42 @@
           <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
 
           <!-- Image of the new device -->
-          <img id="new_device_image" class="device_image" src="images/devices/light_off.svg">
+          <img id="new_device" src="images/devices/light_off.svg">
 
           <!-- The modal for the new device -->
           <div id="device_modal" class="device_modal">
-            <div class="device_modal_inner"> <!-- No idea why this div is needed -->
+            <div>Add / Edit device</div>
 
-              Add / Edit device<br><br>
-
-              <!-- Select type of device -->
-              <!-- This will decide what info is relevant to ask -->
-              <select id="type_select" name="type">
+            <!-- Select type of device -->
+            <div>
+              <label for="type">Device type: </label>
+              <select id="type_select" class="device_property_input" name="type" onchange="create_specific_inputs()">
                 <option value="" selected disabled hidden>Type</option>
-
-                <!-- Controls -->
-                <option value="light">Light</option>
-                <option value="lock">Lock</option>
-                <option value="fan">Fan</option>
-                <option value="heater">Heater</option>
-                <option value="switch">Generic switch</option>
-
-                <!-- Sensors -->
-                <option value="temperature">Temperature sensor</option>
-                <option value="humidity">Humidity sensor</option>
-                <option value="power">Power monitor</option>
-                <option value="sensor">Generic sensor</option>
-
-              </select><br>
-
-              <!-- Info common to all devices -->
-              <input type="hidden" id="id_input" name="id" >
-              <input type="hidden" id="position_x_input" name="position_x">
-              <input type="hidden" id="position_y_input" name="position_y">
-
-
-              <div id="specific_data_inputs">
-                <!-- MQTT controls -->
-                <input class="specific_input" type="text" id="status_topic_input" name="status_topic" placeholder="Status topic"><br>
-                <input class="specific_input" type="text" id="command_topic_input" name="command_topic" placeholder="Command topic"><br>
-                <input class="specific_input" type="text" id="payload_on_input" name="payload_on" placeholder="Payload ON"><br>
-                <input class="specific_input" type="text" id="payload_off_input" name="payload_off" placeholder="Payload OFF"><br>
-              </div>
-
-              <!-- Buttons -->
-              <input type="button" id="add_button" value="Create" onclick="add_device_ws()">
-              <input type="button" id="submit_button" value="Submit" onclick="edit_device_ws()">
-              <input type="button" id="delete_button" value="Delete" onclick="delete_device_ws()">
-              <input type="button" id="cancel_button" value="Cancel" onclick="close_modal()">
-
+                <!-- This should be filled by JS -->
+              </select>
             </div>
+
+            <!-- General properties -->
+            <input type="text" id="id_input" >
+            <input type="text" id="position_x_input">
+            <input type="text" id="position_y_input">
+
+            <div id="specific_properties_inputs_container">
+              <!-- Filled by JS -->
+            </div>
+
+            <!-- Buttons -->
+            <div>
+              <input type="button" id="add_button" value="Create" onclick="add_device_in_back_end()">
+              <input type="button" id="submit_button" value="Submit" onclick="edit_device_in_back_end()">
+              <input type="button" id="delete_button" value="Delete" onclick="delete_device_in_back_end()">
+              <input type="button" id="cancel_button" value="Cancel" onclick="close_all_modals()">
+            </div>
+
           </div>
 
-        </div> <!-- end of floorplan wrapper -->
-      </div> <!-- end of floorplan wrapper outer -->
+        </div><!-- end of floorplan wrapper -->
+      </div><!-- end of floorplan wrapper outer -->
 
       <div class="controls">
         <img class="control" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
@@ -104,15 +75,14 @@
     </div>
   </div>
 
-  <!-- Sensor info modal -->
-  <div id="sensor_info_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
+  <div id="camera_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
     <div class="modal_container">
-      <i class="fas fa-times modal_close_button" onclick="close_modal_by_ID('sensor_info_modal')"></i>
-      <div class="modal_title">Sensor info</div>
-      <div id="sensor_info">
-      </div>
+      <i class="fas fa-times modal_close_button" onclick="close_modal_by_ID('camera_modal')"></i>
+      <img id="camera_image" src="">
     </div>
   </div>
+
+
 
 </body>
 </html>

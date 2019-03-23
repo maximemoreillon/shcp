@@ -119,7 +119,7 @@ main {
 }
 
 
-.device_image {
+.device, #new_device {
 
   /* ensure above rest */
   z-index: 10;
@@ -139,6 +139,14 @@ main {
   /* if icon */
   /* transition: color 0.5s; */
   /* font-size: 300%; */
+}
+
+#new_device {
+  display: none;
+}
+
+#camera_image {
+  width: 80%;
 }
 
 .device_edit {
@@ -199,22 +207,15 @@ footer {
 	/* Be on top of devices */
 	z-index: 100;
 
-}
-
-.device_modal_inner {
-
-	width: 200px;
-
-	position: absolute;
-	top: 20px;
-	left: 20px;
-
   padding: 10px;
 
-	text-align: center;
+  flex-direction: column;
+  align-items: center;
 
-	background: white;
+  /* visuals */
+  background: white;
 	box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+
 }
 
 .device_modal_inner input[type="text"], .device_modal_inner select {

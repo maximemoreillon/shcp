@@ -107,11 +107,11 @@ app.use(expressSession({
 
 // Express routing
 
-app.get('/', checkAuth, function(req, res) {
+app.get('/', function(req, res) {
   res.render('index.ejs');
 });
 
-app.get('/dump', checkAuth, function(req, res) {
+app.get('/dump', function(req, res) {
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
     if (err) throw err;
     var dbo = db.db(db_config.db_name);
@@ -122,7 +122,7 @@ app.get('/dump', checkAuth, function(req, res) {
   });
 });
 
-app.get('/login', checkAuth, function(req, res) {
+app.get('/login', function(req, res) {
   res.render('login.ejs');
 });
 
@@ -169,7 +169,7 @@ io.sockets.on('connection', function (socket) {
     dbo.collection(db_config.collection_name).find({}).toArray(function(err, find_result){
       if (err) throw err;
       db.close();
-      io.sockets.emit('create_all_devices', array_to_json(find_result));
+      io.sockets.emit('delete_and_create_all_in_front_end', find_result);
     });
   });
 
@@ -178,29 +178,25 @@ io.sockets.on('connection', function (socket) {
   });
 
   // Respond to WS messages
-  socket.on("add_devices_in_back_end", function(inbound_JSON_message) {
+  socket.on("add_one_device_in_back_end", function(device) {
 
-    //NOTE: Could think of reading the complete DB again to make sure the devices are in sync
-
-    console.log("[WS] add_devices_in_back_end");
+    console.log("[WS] add_one_device_in_back_end");
 
     MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
-      var new_devices = [];
-      for(id in inbound_JSON_message){
-        new_devices.push(inbound_JSON_message[id]);
-      }
+      // we'll let the db provide the id
+      delete device._id;
 
-      dbo.collection(db_config.collection_name).insertMany(new_devices, function(err, result) {
+      dbo.collection(db_config.collection_name).insertOne(device, function(err, result) {
         if (err) throw err;
         db.close();
 
         // Update front end
-        io.emit('add_devices_in_front_end', array_to_json(result.ops));
+        io.emit('add_or_update_some_in_front_end', result.ops);
 
-        //Subscribe to all new topics
+        //Subscribe to all new topics if provided
         for(index in result.ops){
           if(typeof result.ops[index].status_topic !== 'undefined' && result.ops[index].status_topic != "") {
             console.log(`[MQTT] subscribing to ${result.ops[index].status_topic}`);
@@ -209,73 +205,61 @@ io.sockets.on('connection', function (socket) {
         }
       });
     });
+
   });
 
 
-  socket.on("delete_devices_in_back_end", function(inbound_JSON_message) {
-    console.log("[WS] delete_devices_in_back_end");
+  socket.on("delete_one_device_in_back_end", function(device) {
+    console.log("[WS] delete_one_device_in_back_end");
 
     MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
-      var ids = [];
-      Object.keys(inbound_JSON_message).forEach(function(entry) {
-        ids.push(ObjectID(entry));
-      });
+      var query = { _id: ObjectID(device._id)};
 
-      var query = { _id: { $in: ids } };
-
-      dbo.collection(db_config.collection_name).deleteMany( query , function(err, result) {
+      dbo.collection(db_config.collection_name).deleteOne( query , function(err, result) {
         if (err) throw err;
         db.close();
 
         // Update front end
         // TODO: Use result from DB to send info to clients
-        io.emit('delete_devices_in_front_end', inbound_JSON_message);
+        io.emit('delete_some_in_front_end', [device]);
 
         // TODO deal with MQTT subscribtions
 
       });
     });
 
+
   });
 
-  socket.on("edit_devices_in_back_end", function(inbound_JSON_message) {
+  socket.on("edit_one_device_in_back_end", function(device) {
 
-    console.log("[WS] edit_devices_in_back_end");
+    console.log("[WS] edit_one_device_in_back_end");
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db(db_config.db_name);
 
-    // TODO: get rid of the for loop!!
+      var query = { _id: ObjectID(device._id) };
+      delete device._id;
+      console.log(device);
+      var action = device;
+      var options = { returnOriginal: false };
 
-    for(var id in inbound_JSON_message) {
-
-      MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+      dbo.collection(db_config.collection_name).findOneAndReplace(query, action, options, function(err, result) {
         if (err) throw err;
-        var dbo = db.db(db_config.db_name);
+        db.close();
+        console.log(result.value);
+        io.sockets.emit('add_or_update_some_in_front_end', [result.value]);
 
-        var query = { _id: ObjectID(id) };
-        var action = {};
-        action['$set'] = inbound_JSON_message[id]
-
-        dbo.collection(db_config.collection_name).updateOne(query, action, function(err, res) {
-          if (err) throw err;
-          dbo.collection(db_config.collection_name).find(query).toArray(function(err, find_result){
-            if (err) throw err;
-            db.close();
-
-            io.sockets.emit('edit_devices_in_front_end', find_result);
-
-            // TO DO: Deal with MQTT subscribe
-            for(index in find_result){
-              if(typeof find_result[index].status_topic !== 'undefined' && find_result[index].status_topic != "") {
-                console.log(`[MQTT] subscribing to ${find_result[index].status_topic}`);
-                mqtt_client.subscribe(find_result[index].status_topic);
-              }
-            }
-          });
-        });
+        // Deal with MQTT subscriptions
+        if(typeof result.value.status_topic !== 'undefined' && result.value.status_topic != "") {
+          console.log(`[MQTT] subscribing to ${find_result[index].status_topic}`);
+          mqtt_client.subscribe(find_result[index].status_topic);
+        }
       });
-    }
+    });
   });
 
   socket.on("front_to_mqtt", function(inbound_JSON_message) {
@@ -318,7 +302,7 @@ mqtt_client.on('message', function (status_topic, payload) {
       dbo.collection(db_config.collection_name).find(query).toArray(function(err, find_result){
         if (err) throw err;
         db.close();
-        io.sockets.emit('edit_devices_in_front_end', array_to_json(find_result));
+        io.sockets.emit('add_or_update_some_in_front_end', find_result);
       });
     });
   });
