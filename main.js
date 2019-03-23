@@ -81,13 +81,6 @@ function mqtt_subscribe_all() {
   });
 }
 
-///////////
-// Init ///
-///////////
-
-mqtt_subscribe_all();
-
-
 
 ////////////////////
 // EXPRESS CONFIG //
@@ -143,13 +136,6 @@ app.get('/logout', function (req, res) {
   delete req.session.user_id;
   res.redirect('/');
 });
-
-
-// Run the server
-http_server.listen(misc_config.app_port, function(){
-  console.log(`[HTTP] listening on port ${misc_config.app_port}`);
-});
-
 
 
 
@@ -223,7 +209,6 @@ io.sockets.on('connection', function (socket) {
         db.close();
 
         // Update front end
-        // TODO: Use result from DB to send info to clients
         io.emit('delete_some_in_front_end', [device]);
 
         // TODO deal with MQTT subscribtions
@@ -306,4 +291,18 @@ mqtt_client.on('message', function (status_topic, payload) {
       });
     });
   });
+});
+
+
+
+
+///////////
+// START //
+///////////
+
+mqtt_subscribe_all();
+
+// Run the server
+http_server.listen(misc_config.app_port, function(){
+  console.log(`[HTTP] listening on port ${misc_config.app_port}`);
 });
