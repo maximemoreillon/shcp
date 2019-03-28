@@ -9,6 +9,8 @@ This is still a work in progress
 ## Dependencies
 
 * Express
+* EJS
+* HTTP-Proxy
 * MongoDB
 * MQTT
 
