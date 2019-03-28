@@ -13,47 +13,45 @@
     </header>
 
     <main>
-      <div class="floorplan_wrapper_outer">
-        <div id="floorplan_wrapper" class="floorplan_wrapper">
-          <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
+      <div id="floorplan_wrapper" class="floorplan_wrapper">
+        <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
 
-          <!-- Image of the new device -->
-          <img id="new_device" src="images/devices/light_off.svg">
+        <!-- Image of the new device -->
+        <span id="new_device" class="mdi mdi-plus-circle-outline"></span>
 
-          <!-- The modal for the new device -->
-          <div id="device_modal" class="device_modal">
-            <div>Add / Edit device</div>
+        <!-- The modal for the new device -->
+        <div id="device_modal" class="device_modal">
+          <div>Add / Edit device</div>
 
-            <!-- Select type of device -->
-            <div>
-              <label for="type">Device type: </label>
-              <select id="type_select" class="device_property_input" name="type" onchange="create_specific_inputs()">
-                <option value="" selected disabled hidden>Type</option>
-                <!-- This should be filled by JS -->
-              </select>
-            </div>
-
-            <!-- General properties -->
-            <input type="text" id="id_input" >
-            <input type="text" id="position_x_input">
-            <input type="text" id="position_y_input">
-
-            <div id="specific_properties_inputs_container">
-              <!-- Filled by JS -->
-            </div>
-
-            <!-- Buttons -->
-            <div>
-              <input type="button" id="add_button" value="Create" onclick="add_device_in_back_end()">
-              <input type="button" id="submit_button" value="Submit" onclick="edit_device_in_back_end()">
-              <input type="button" id="delete_button" value="Delete" onclick="delete_device_in_back_end()">
-              <input type="button" id="cancel_button" value="Cancel" onclick="close_all_modals()">
-            </div>
-
+          <!-- Select type of device -->
+          <div>
+            <label for="type">Device type: </label>
+            <select id="type_select" name="type" onchange="create_specific_inputs()">
+              <option value="" selected disabled hidden>Type</option>
+              <!-- This should be filled by JS -->
+            </select>
           </div>
 
-        </div><!-- end of floorplan wrapper -->
-      </div><!-- end of floorplan wrapper outer -->
+          <!-- General properties -->
+          <input type="hidden" id="id_input" >
+          <input type="hidden" id="position_x_input">
+          <input type="hidden" id="position_y_input">
+
+          <div id="specific_properties_inputs_container">
+            <!-- Filled by JS -->
+          </div>
+
+          <!-- Buttons -->
+          <div>
+            <input type="button" id="add_button" value="Create" onclick="add_device_in_back_end()">
+            <input type="button" id="submit_button" value="Submit" onclick="edit_device_in_back_end()">
+            <input type="button" id="delete_button" value="Delete" onclick="delete_device_in_back_end()">
+            <input type="button" id="cancel_button" value="Cancel" onclick="close_all_modals()">
+          </div>
+
+        </div>
+
+      </div><!-- end of floorplan wrapper -->
 
       <div class="controls">
         <img class="control" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
@@ -77,8 +75,13 @@
 
   <div id="camera_modal" class="modal_wrapper" onclick="close_camera_modal_by_background_click(this, event)">
     <div class="modal_container">
-      <i class="fas fa-times modal_close_button" onclick="close_camera_modal()"></i>
       <img id="camera_image" src="images/devices/cctv.svg">
+    </div>
+  </div>
+
+  <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
+    <div class="modal_container">
+      <div id="sensor_modal_content"></div>
     </div>
   </div>
 

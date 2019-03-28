@@ -2,64 +2,50 @@ var devices_template = [
   {
     type: "light",
     form_fields: [
-      {field_name: "command_topic", field_label:"MQTT command topic"},
-      {field_name: "status_topic", field_label:"MQTT status topic"},
+      {field_name: "command_topic", field_label:"Command topic"},
+      {field_name: "status_topic", field_label:"Status topic"},
       {field_name: "payload_on", field_label:"Payload ON"},
       {field_name: "payload_off", field_label:"Payload OFF"}
     ],
-    icons: {
-      on: "images/devices/light_on.svg",
-      off: "images/devices/light_off.svg",
-      default: "images/devices/light_off.svg"
-    },
+    icon: "mdi-lightbulb",
     onclick: function(device){toggle_device_state(device)}
   },
   {
     type: "heater",
     form_fields: [
-      {field_name: "command_topic", field_label:"MQTT command topic"},
-      {field_name: "status_topic", field_label:"MQTT status topic"},
+      {field_name: "command_topic", field_label:"Command topic"},
+      {field_name: "status_topic", field_label:"Status topic"},
       {field_name: "payload_on", field_label:"Payload ON"},
       {field_name: "payload_off", field_label:"Payload OFF"}
     ],
-    icons: {
-      on: "images/devices/heater_on.svg",
-      off: "images/devices/heater_off.svg",
-      default: "images/devices/heater_off.svg"
-    },
+    icon: "mdi-radiator",
     onclick: function(device){toggle_device_state(device)}
   },
   {
     type: "fan",
     form_fields: [
-      {field_name: "command_topic", field_label:"MQTT command topic"},
-      {field_name: "status_topic", field_label:"MQTT status topic"},
+      {field_name: "command_topic", field_label:"Command topic"},
+      {field_name: "status_topic", field_label:"Status topic"},
       {field_name: "payload_on", field_label:"Payload ON"},
       {field_name: "payload_off", field_label:"Payload OFF"}
     ],
-    icons: {
-      on: "images/devices/fan_on.svg",
-      off: "images/devices/fan_off.svg",
-      default: "images/devices/fan_off.svg"
-    },
+    icon: "mdi-fan",
     onclick: function(device){toggle_device_state(device)}
   },
   {
     type: "sensor",
     form_fields: [
-      {status_topic: "stream_url", field_label:"MQTT status topic"}
+      {field_name: "status_topic", field_label:"Status topic"}
     ],
-    icons: "images/devices/thermometer.svg",
-    onclick: function(){alert("hello")}
+    icon: "mdi-gauge",
+    onclick: function(device){open_sensor_modal(device)}
   },
   {
     type: "camera",
     form_fields: [
       {field_name: "stream_url", field_label:"Stream URL"}
     ],
-    icons: {
-      default: "images/devices/cctv.svg"
-    },
+    icon: "mdi-cctv",
     onclick: function(device){open_camera_modal(device)}
   },
 
@@ -90,7 +76,7 @@ function toggle_device_state(device){
 
 function open_camera_modal(device){
   open_modal_by_ID("camera_modal");
-  document.getElementById("camera_image").src = device.stream_url;
+  document.getElementById("camera_image").src = "/camera?_id=" + device._id;
 }
 
 function close_camera_modal(){
@@ -101,7 +87,11 @@ function close_camera_modal(){
 function close_camera_modal_by_background_click(self, event){
   // here, self could be the ID directly
   if(event.target == self){
-    document.getElementById("camera_image").src = "images/devices/cctv.svg";
-    close_modal_by_ID(self.id);
+    close_camera_modal();
   }
+}
+
+function open_sensor_modal(device){
+  open_modal_by_ID("sensor_modal");
+  document.getElementById("sensor_modal_content").innerHTML = device.state;
 }

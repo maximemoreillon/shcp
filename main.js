@@ -7,13 +7,13 @@ var http = require('http');
 var mqtt = require('mqtt');
 var socketio = require('socket.io');
 var MongoDB = require('mongodb');
+var request = require('request');
+var httpProxy = require('http-proxy');
 
 // Custom modules
 var db_config = require ('./config/db_config');
 var misc_config = require('./config/misc_config');
 var credentials = require('./config/credentials');
-
-// Object containing all the devices, initially populated by a MySQL DB
 
 // MongoDB objects
 var MongoClient = MongoDB.MongoClient;
@@ -36,6 +36,11 @@ var mqtt_client  = mqtt.connect(
     password: credentials.mqtt_password
   }
 );
+
+// proxy
+var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
+
+
 
 /////////////
 // Helper functions
@@ -61,7 +66,18 @@ function checkAuth(req, res, next) {
   }
 }
 
+function checkAuthNoLogin(req, res, next) {
+  if (!req.session.user_id) {
+    res.sendStatus(401);
+  }
+  else {
+    next();
+  }
+}
+
 function mqtt_subscribe_all() {
+
+  console.log(`[MQTT] Subscribing to all topics`);
   // Subscribe to all topics
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
     if (err) throw err;
@@ -91,6 +107,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(expressSession({
     secret: 'keyboard cat',
     resave: false,
@@ -99,8 +116,7 @@ app.use(expressSession({
 
 
 // Express routing
-
-app.get('/', function(req, res) {
+app.get('/',checkAuth, function(req, res) {
   res.render('index.ejs');
 });
 
@@ -109,10 +125,42 @@ app.get('/dump', function(req, res) {
     if (err) throw err;
     var dbo = db.db(db_config.db_name);
     dbo.collection(db_config.collection_name).find({}).toArray(function(err, result) {
+      if (err) throw err;
       res.render('dump.ejs', {devices: result});
       db.close();
     });
   });
+});
+
+app.get('/camera', checkAuthNoLogin, function(req, res) {
+
+  if(typeof req.query._id !== 'undefined'){
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db(db_config.db_name);
+
+      // TODO: check if exists
+      var query = {_id: ObjectID(req.query._id)};
+
+      dbo.collection(db_config.collection_name).findOne(query, function(err, result) {
+        if (err) throw err;
+        db.close();
+
+        cameraProxy.options.target = result.stream_url;
+
+        console.log("[Camera] Currently streaming " + result.stream_url);
+
+        // Removing some headers because the camera doesn't support large headers
+        delete req.headers.cookie;
+        delete req.headers.via;
+        delete req.headers.referer;
+
+        cameraProxy.web(req, res, {target: result.stream_url});
+
+      });
+    });
+  }
+
 });
 
 app.get('/login', function(req, res) {
@@ -182,8 +230,11 @@ io.sockets.on('connection', function (socket) {
         // Update front end
         io.emit('add_or_update_some_in_front_end', result.ops);
 
-        //Subscribe to all new topics if provided
+
+        // Even if only one device is added, result.ops is still an array
+
         for(index in result.ops){
+          //Subscribe to all new topics if provided
           if(typeof result.ops[index].status_topic !== 'undefined' && result.ops[index].status_topic != "") {
             console.log(`[MQTT] subscribing to ${result.ops[index].status_topic}`);
             mqtt_client.subscribe(result.ops[index].status_topic);
@@ -228,20 +279,18 @@ io.sockets.on('connection', function (socket) {
 
       var query = { _id: ObjectID(device._id) };
       delete device._id;
-      console.log(device);
       var action = device;
       var options = { returnOriginal: false };
 
       dbo.collection(db_config.collection_name).findOneAndReplace(query, action, options, function(err, result) {
         if (err) throw err;
         db.close();
-        console.log(result.value);
         io.sockets.emit('add_or_update_some_in_front_end', [result.value]);
 
         // Deal with MQTT subscriptions
         if(typeof result.value.status_topic !== 'undefined' && result.value.status_topic != "") {
-          console.log(`[MQTT] subscribing to ${find_result[index].status_topic}`);
-          mqtt_client.subscribe(find_result[index].status_topic);
+          console.log(`[MQTT] subscribing to ${result.value.status_topic}`);
+          mqtt_client.subscribe(result.value.status_topic);
         }
       });
     });
@@ -256,6 +305,7 @@ io.sockets.on('connection', function (socket) {
       mqtt_client.publish(inbound_JSON_message[id].command_topic, inbound_JSON_message[id].state);
     }
   });
+
 }); // end of socket on connect
 
 

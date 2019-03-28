@@ -30,7 +30,6 @@ socket.on('delete_some_in_front_end', function (device_array) {
   delete_some_devices_in_front_end(device_array);
 });
 
-
 function make_handler_for_onclick(device) {
   // Creates a handler for onclick events
   return function() {
@@ -44,15 +43,13 @@ function make_handler_for_onclick(device) {
     }
     else if(mode == "edit") {
 
-
-
       // don't show the new device since it's an edit of an existing one
       document.getElementById('new_device').style.display = "none";
 
       // Display the modal at the right position
       var device_modal = document.getElementById('device_modal');
       device_modal.style.display = "flex";
-      device_modal.style.left = device.position.x.toString() + "%";
+      device_modal.style.left = "5%"; //device.position.x.toString() + "%";
       device_modal.style.top = device.position.y.toString() + "%";
 
       // Fill the inputs
@@ -85,9 +82,8 @@ function create_device_in_front_end(device_data){
   var floorplan_wrapper = document.getElementById("floorplan_wrapper");
 
   // Create the image
-  var device = document.createElement('img');
+  var device = document.createElement('SPAN');
   device.id = device_data._id;
-  device.className = "device";
   floorplan_wrapper.appendChild(device);
 }
 
@@ -101,20 +97,19 @@ function update_device_in_front_end(device_data){
   }
 
   // Device image
-  device.src = "images/devices/unknown.svg";
-  for(var index in devices_template){
+  device.className = "device mdi mdi-help-circle-outline";
+
+  for(var index=0; index < devices_template.length; index++){
     if(device.type === devices_template[index].type){
-      if(typeof device.state !== 'undefined'){
-        if(device.state === device.payload_on){
-          device.src = devices_template[index].icons.on;
-        }
-        else if (device.state === device.payload_off){
-          device.src = devices_template[index].icons.off;
-        }
-      }
-      else {
-        device.src = devices_template[index].icons.default;
-      }
+      device.classList.remove("mdi-help-circle-outline");
+      device.classList.add(devices_template[index].icon);
+    }
+  }
+
+  // Set color depending on state using class
+  if(typeof device.state !== 'undefined'){
+    if(device.state === device.payload_on){
+      device.classList.add("on");
     }
   }
 
@@ -243,10 +238,19 @@ function get_mouse_pos_percent(element,evt) {
 
   var rect = element.getBoundingClientRect();
 
-  return {
-    x: (100.00*(evt.clientX - rect.left)/element.offsetWidth).toFixed(0),
-    y: (100.00*(evt.clientY - rect.top)/element.offsetHeight).toFixed(0)
-  };
+  var position_pixels = {
+    x: evt.clientX - rect.left,
+    y: evt.clientY - rect.top
+  }
+
+  var granularity = 4;
+
+  var position_percent_granular = {
+    x: Math.round((100.00/granularity)*position_pixels.x/element.offsetWidth)*granularity,
+    y: Math.round((100.00/granularity)*position_pixels.y/element.offsetHeight)*granularity,
+  }
+
+  return position_percent_granular;
 }
 
 function open_device_modal(evt) {
@@ -255,27 +259,22 @@ function open_device_modal(evt) {
   // Getting elements to work with
   var floorplan = document.getElementById('floorplan');
   var device_modal = document.getElementById('device_modal');
-  var id_input = document.getElementById('id_input');
-  var position_x_input = document.getElementById("position_x_input");
-  var position_y_input = document.getElementById("position_y_input");
-  var new_device_wrapper = document.getElementById("new_device");
   var new_device = document.getElementById("new_device");
-  var type_select = document.getElementById("type_select");
 
   var mouse_pos = get_mouse_pos_percent(floorplan, evt);
 
   // Display the modal at the right location
   device_modal.style.display = "flex";
-  device_modal.style.left = mouse_pos.x.toString() + "%";
+  device_modal.style.left = "5%"; //mouse_pos.x.toString() + "%";
   device_modal.style.top = mouse_pos.y.toString() + "%";
 
   // Fill the input fields
-  id_input.value = "new_device";
-  type_select.value = "";
+  document.getElementById('id_input').value = "new_device";
+  document.getElementById("type_select").value = "";
   create_specific_inputs();
 
-  position_x_input.value = mouse_pos.x;
-  position_y_input.value = mouse_pos.y;
+  document.getElementById("position_x_input").value = mouse_pos.x;
+  document.getElementById("position_y_input").value = mouse_pos.y;
 
   // Display something where the device will be
   new_device.style.display = "block";
@@ -306,10 +305,11 @@ function create_specific_inputs(){
     if(type_select.value === devices_template[index].type){
 
       // if so, create each input fields and corresponding labels
-      for(var field_index in devices_template[index].form_fields){
+      for(var field_index=0; field_index<devices_template[index].form_fields.length; field_index++){
 
+        var container = document.createElement("DIV");
         var input = document.createElement("INPUT");
-        var label = document.createElement("label");
+        var label = document.createElement("LABEL");
 
         input.type = "text";
         input.name = devices_template[index].form_fields[field_index].field_name;
@@ -318,8 +318,9 @@ function create_specific_inputs(){
         label.for = devices_template[index].form_fields[field_index].field_name;
         label.innerHTML = devices_template[index].form_fields[field_index].field_label;
 
-        specific_data_inputs.appendChild(label);
-        specific_data_inputs.appendChild(input);
+        specific_data_inputs.appendChild(container);
+        container.appendChild(label);
+        container.appendChild(input);
       }
     }
   }
@@ -336,6 +337,7 @@ function populate_specific_inputs(device){
 }
 
 
+
 // This code is executed after the page has been loaded
 window.onload = function(){
 
@@ -350,7 +352,7 @@ window.onload = function(){
   // fill the type selector
   var type_select = document.getElementById("type_select");
 
-  for(var device_index in devices_template){
+  for(var device_index=0; device_index<devices_template.length; device_index++){
     var option = document.createElement("OPTION");
     option.value = devices_template[device_index].type;
     option.innerHTML = devices_template[device_index].type;
