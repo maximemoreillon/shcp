@@ -7,7 +7,6 @@ var http = require('http');
 var mqtt = require('mqtt');
 var socketio = require('socket.io');
 var MongoDB = require('mongodb');
-var request = require('request');
 var httpProxy = require('http-proxy');
 
 // Custom modules
@@ -37,24 +36,12 @@ var mqtt_client  = mqtt.connect(
   }
 );
 
-// proxy
+// proxy for camera
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
-
-
 
 /////////////
 // Helper functions
 ////////////
-
-function array_to_json(array){
-  var out = {};
-  for(index in array){
-    var id = array[index]["_id"];
-    out[id] = array[index];
-    delete out[id]["_id"];
-  }
-  return out;
-}
 
 // Function to check if user is logged in (has a user ID session)
 function checkAuth(req, res, next) {
@@ -146,8 +133,6 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
         if (err) throw err;
         db.close();
 
-        cameraProxy.options.target = result.stream_url;
-
         console.log("[Camera] Currently streaming " + result.stream_url);
 
         // Removing some headers because the camera doesn't support large headers
@@ -159,6 +144,9 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
 
       });
     });
+  }
+  else {
+    res.sendStatus(404);
   }
 
 });
@@ -230,9 +218,7 @@ io.sockets.on('connection', function (socket) {
         // Update front end
         io.emit('add_or_update_some_in_front_end', result.ops);
 
-
         // Even if only one device is added, result.ops is still an array
-
         for(index in result.ops){
           //Subscribe to all new topics if provided
           if(typeof result.ops[index].status_topic !== 'undefined' && result.ops[index].status_topic != "") {
@@ -277,9 +263,15 @@ io.sockets.on('connection', function (socket) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
+      // Look fore device by ID
       var query = { _id: ObjectID(device._id) };
-      delete device._id;
+
+      // Set the new device properties according to the WS payload
       var action = device;
+
+      // No need to update the ID
+      delete action._id;
+
       var options = { returnOriginal: false };
 
       dbo.collection(db_config.collection_name).findOneAndReplace(query, action, options, function(err, result) {
