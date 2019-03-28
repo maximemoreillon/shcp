@@ -10,7 +10,7 @@ Currently, the app can handle the following type of devices:
 * MQTT enabled sensors
 * IP cameras
 
-It wasmainly  built so as to learn about Node.js and is not intented to compete with existing software sharing the same function such as home assistant.
+The app was mainly built so as to learn about Node.js and is not intented to compete with existing software sharing the same purpose such as home assistant.
 
 ## Dependencies
 
