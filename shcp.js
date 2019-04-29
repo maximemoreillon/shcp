@@ -140,7 +140,12 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
         delete req.headers.via;
         delete req.headers.referer;
 
-        cameraProxy.web(req, res, {target: result.stream_url});
+
+        cameraProxy.web(req, res, {target: result.stream_url}, function(proxy_error) {
+          if(proxy_error) console.log(proxy_error)
+        });
+
+
 
       });
     });
