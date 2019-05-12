@@ -103,8 +103,31 @@ app.use(expressSession({
 
 
 // Express routing
-app.get('/',checkAuth, function(req, res) {
-  res.render('index.ejs');
+app.get('/', function(req, res) {
+  res.render('index');
+});
+
+app.get('/edit_floorplan', function(req, res) {
+  res.render('edit_floorplan');
+});
+
+app.get('/show_device', function(req, res) {
+
+  if(req.query._id){
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db(db_config.db_name);
+      var query = {_id: ObjectID(req.query._id)};
+      dbo.collection(db_config.collection_name).findOne(query, function(err, result) {
+        if (err) throw err;
+        db.close();
+        res.render('show_device', {device_properties: result});
+      });
+    });
+  }
+  else{
+    res.render('show_device', {data: "NO DATA"});
+  }
 });
 
 app.get('/dump', function(req, res) {
@@ -113,8 +136,8 @@ app.get('/dump', function(req, res) {
     var dbo = db.db(db_config.db_name);
     dbo.collection(db_config.collection_name).find({}).toArray(function(err, result) {
       if (err) throw err;
-      res.render('dump.ejs', {devices: result});
       db.close();
+      res.render('dump.ejs', {devices: result});
     });
   });
 });
@@ -126,7 +149,6 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
-      // TODO: check if exists
       var query = {_id: ObjectID(req.query._id)};
 
       dbo.collection(db_config.collection_name).findOne(query, function(err, result) {
@@ -140,13 +162,9 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
         delete req.headers.via;
         delete req.headers.referer;
 
-
         cameraProxy.web(req, res, {target: result.stream_url}, function(proxy_error) {
           if(proxy_error) console.log(proxy_error)
         });
-
-
-
       });
     });
   }
@@ -183,7 +201,6 @@ app.get('/logout', function (req, res) {
 ////////////////
 // Websockets //
 ////////////////
-
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
 
@@ -279,6 +296,7 @@ io.sockets.on('connection', function (socket) {
 
       var options = { returnOriginal: false };
 
+      // Using replace to get rid of previous device propertiess
       dbo.collection(db_config.collection_name).findOneAndReplace(query, action, options, function(err, result) {
         if (err) throw err;
         db.close();
@@ -293,13 +311,11 @@ io.sockets.on('connection', function (socket) {
     });
   });
 
-  socket.on("front_to_mqtt", function(inbound_JSON_message) {
+  socket.on("front_to_mqtt", function(message) {
     // Convert WS messages into MQTT messages
-
     console.log("[WS] front_to_mqtt");
-
-    for(var id in inbound_JSON_message) {
-      mqtt_client.publish(inbound_JSON_message[id].command_topic, inbound_JSON_message[id].state);
+    if(message.command_topic && message.payload){
+      mqtt_client.publish(message.command_topic, message.payload);
     }
   });
 

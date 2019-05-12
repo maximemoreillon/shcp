@@ -1,0 +1,67 @@
+<!-- views/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>SHCP</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" href="images/logo/logo.png">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/styles_test.css" type="text/css">
+  <link rel="stylesheet" href="https://webcomponents.maximemoreillon.com/modals/modals.css" type="text/css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="//cdn.materialdesignicons.com/3.5.95/css/materialdesignicons.min.css">
+
+  <!-- JS -->
+  <script src="https://webcomponents.maximemoreillon.com/ie_polyfill/ie_polyfill.js"></script> <!-- Compatibility for array includes in IE (Surface RT) -->
+  <script src="https://webcomponents.maximemoreillon.com/modals/modals.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+<body>
+  <div id="app">
+
+    <div id="floorplan_wrapper" class="floorplan_wrapper">
+      <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
+
+      <!-- devices -->
+      <span
+        class="device mdi"
+        v-for="device in devices"
+        v-on:click="open_device_page(device)"
+        v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
+        v-bind:class="[device_templates[device.type].icon]"
+        >
+      </span>
+
+    </div><!-- end of floorplan wrapper -->
+
+
+    <!-- Modals -->
+    <!-- Modal for connection -->
+    <div id="disconnected_modal" class="modal_wrapper">
+      <div class="modal_container">
+        NO CONNECTION
+      </div>
+    </div>
+
+    <div id="camera_modal" class="modal_wrapper" onclick="close_camera_modal_by_background_click(this, event)">
+      <div class="modal_container">
+        <img id="camera_image" src="images/devices/cctv.svg">
+      </div>
+    </div>
+
+    <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
+      <div class="modal_container">
+        <div id="sensor_modal_content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/edit_floorplan.js"></script>
+</body>
+</html>

@@ -2,94 +2,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <% include partials/head %>
-  <link rel="stylesheet" href="https://maximemoreillon.com/web_components/modals/modals.css" type="text/css">
-  <script src="https://maximemoreillon.com/web_components/modals/modals.js"></script>
-  <script src="js/devices_template.js"></script>
-  <script src="js/manage_devices.js"></script>
+  <title>SHCP</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" href="images/logo/logo.png">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css" type="text/css">
+  <link rel="stylesheet" href="https://webcomponents.maximemoreillon.com/modals/modals.css" type="text/css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="//cdn.materialdesignicons.com/3.5.95/css/materialdesignicons.min.css">
+
+  <!-- JS -->
+  <script src="https://webcomponents.maximemoreillon.com/ie_polyfill/ie_polyfill.js"></script> <!-- Compatibility for array includes in IE (Surface RT) -->
+  <script src="https://webcomponents.maximemoreillon.com/modals/modals.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
 </head>
 <body>
+  <div id="app">
 
-  <div class="wrapper">
+    <div id="floorplan_wrapper" class="floorplan_wrapper">
+      <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg" v-on:click="floorplan_clicked">
 
-    <header>
-      <% include partials/header %>
-    </header>
+      <!-- devices -->
+      <device
+        v-for="device in devices"
+        v-bind:key="device.id"
+        v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
+        v-bind:class="[device_icon(device), {on: device_state(device)}, {edit: edit_mode}]"
+        v-on:click.native="device_action(device)"
+      ></device>
 
-    <main>
-      <div id="floorplan_wrapper" class="floorplan_wrapper">
-        <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg">
+      <!-- new device -->
+      <device
+        class="device mdi mdi-plus-circle-outline"
+        v-if="edit_mode && selected_device === new_device"
+        v-bind:style="{left: new_device.position.x + '%',top: new_device.position.y + '%'}"
+        v-bind:class="{edit: edit_mode}"
+      ></device>
 
-        <!-- Image of the new device -->
-        <span id="new_device" class="mdi mdi-plus-circle-outline"></span>
+    </div><!-- end of floorplan wrapper -->
 
-        <!-- The modal for the new device -->
-        <div id="device_modal" class="device_modal">
-          <div>Add / Edit device</div>
+    <!-- checkbox to enable edit mode -->
+    <div>
+      <button v-on:click="toggle_edit_mode">Toggle edit mode </button>
+    </div>
 
-          <!-- Select type of device -->
-          <div>
-            <label for="type">Device type: </label>
-            <select id="type_select" name="type" onchange="create_specific_inputs()">
-              <option value="" selected disabled hidden>Type</option>
-              <!-- This should be filled by JS -->
-            </select>
-          </div>
-
-          <!-- General properties -->
-          <input type="hidden" id="id_input" >
-          <input type="hidden" id="position_x_input">
-          <input type="hidden" id="position_y_input">
-
-          <div id="specific_properties_inputs_container">
-            <!-- Filled by JS -->
-          </div>
-
-          <!-- Buttons -->
-          <div>
-            <input type="button" id="add_button" value="Create" onclick="add_device_in_back_end()">
-            <input type="button" id="submit_button" value="Submit" onclick="edit_device_in_back_end()">
-            <input type="button" id="delete_button" value="Delete" onclick="delete_device_in_back_end()">
-            <input type="button" id="cancel_button" value="Cancel" onclick="close_all_modals()">
-          </div>
-
-        </div>
-
-      </div><!-- end of floorplan wrapper -->
-
-      <div class="controls">
-        <img class="control" id="toggle_edit_button" src="images/icons/pencil.svg" onclick="toggle_edit_mode(this)">
+    <!-- Device info form -->
+    <!-- Shown only if a device is selected (has an id) -->
+    <!-- This includes the new device -->
+    <div v-if="selected_device._id">
+      <div>
+        <label>ID: </label>
+        <input type="text" name="_id" v-bind:value="selected_device._id">
       </div>
+      <div>
+        <!-- change this to a select field -->
+        <label>Type</label>
+        <input type="text" name="type" v-model="selected_device.type">
+      </div>
+      <div v-for="form_field in device_form_fields(selected_device)">
+        <label>{{form_field.label}}</label>
+        <input type="text" v-bind:name="form_field.field_name" v-model="selected_device[form_field.key]">
+      </div>
+      <button v-if="selected_device === new_device" v-on:click="add_device_in_back_end">Create device</button>
+      <button v-if="selected_device !== new_device" v-on:click="edit_device_in_back_end">Update device</button>
+      <button v-if="selected_device !== new_device" v-on:click="delete_device_in_back_end">Delete device</button>
+      <button v-if="selected_device !== new_device" v-on:click="selected_device = {}">Cancel</button>
+    </div>
 
-    </main>
 
-    <footer>
-      <% include partials/footer %>
-    </footer>
+    <!-- Modals -->
+    <!-- Modal for connection -->
+    <div id="disconnected_modal" class="modal_wrapper">
+      <div class="modal_container">
+        NO CONNECTION
+      </div>
+    </div>
 
-  </div> <!-- End of wrapper -->
+    <div id="camera_modal" class="modal_wrapper" onclick="close_camera_modal_by_background_click(this, event)">
+      <div class="modal_container">
+        <img id="camera_image" src="images/devices/cctv.svg">
+      </div>
+    </div>
 
-  <!-- Modals -->
-  <!-- Modal for connection -->
-  <div id="disconnected_modal" class="modal_wrapper">
-    <div class="modal_container">
-      NO CONNECTION
+    <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
+      <div class="modal_container">
+        <div id="sensor_modal_content"></div>
+      </div>
     </div>
   </div>
 
-  <div id="camera_modal" class="modal_wrapper" onclick="close_camera_modal_by_background_click(this, event)">
-    <div class="modal_container">
-      <img id="camera_image" src="images/devices/cctv.svg">
-    </div>
-  </div>
-
-  <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
-    <div class="modal_container">
-      <div id="sensor_modal_content"></div>
-    </div>
-  </div>
-
-
+  <script src="js/device_templates.js"></script>
+  <script src="js/manage_devices.js"></script>
 
 </body>
 </html>
