@@ -25,55 +25,75 @@
 <body>
   <div id="app">
 
-    <div id="floorplan_wrapper" class="floorplan_wrapper">
-      <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg" v-on:click="floorplan_clicked">
+    <div class="main">
+      <div id="floorplan_wrapper" class="floorplan_wrapper">
+        <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg" v-on:click="floorplan_clicked">
 
-      <!-- devices -->
-      <device
-        v-for="device in devices"
-        v-bind:key="device.id"
-        v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
-        v-bind:class="[device_icon(device), {on: device_state(device)}, {edit: edit_mode}]"
-        v-on:click.native="device_action(device)"
-      ></device>
+        <!-- devices -->
+        <device
+          v-for="device in devices"
+          v-bind:key="device.id"
+          v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
+          v-bind:class="[device_icon(device), {on: device_state(device)}, {edit: edit_mode}]"
+          v-on:click.native="device_action(device)"
+        ></device>
 
-      <!-- new device -->
-      <device
-        class="device mdi mdi-plus-circle-outline"
-        v-if="edit_mode && selected_device === new_device"
-        v-bind:style="{left: new_device.position.x + '%',top: new_device.position.y + '%'}"
-        v-bind:class="{edit: edit_mode}"
-      ></device>
+        <!-- new device (show an icon where the new device will be) -->
+        <device
+          class="device mdi mdi-plus-circle-outline"
+          v-if="edit_mode && selected_device === new_device"
+          v-bind:style="{left: new_device.position.x + '%',top: new_device.position.y + '%'}"
+          v-bind:class="{edit: edit_mode}"
+        ></device>
 
-    </div><!-- end of floorplan wrapper -->
+      </div><!-- end of floorplan wrapper -->
 
-    <!-- checkbox to enable edit mode -->
-    <div>
-      <button v-on:click="toggle_edit_mode">Toggle edit mode </button>
+      <!-- checkbox to enable edit mode -->
+      <div>
+        <button v-on:click="toggle_edit_mode">Toggle edit mode</button>
+      </div>
+
+      <!-- Device info form -->
+      <!-- Shown only if a device is selected (has an id) -->
+      <!-- This includes the new device -->
+      <div id="properties_container" v-if="selected_device._id">
+        <!-- Type selection -->
+
+        <table >
+          <!-- Type selection -->
+          <tr>
+            <td>Type</td>
+            <td>
+              <select id="type_selector" v-model="selected_device.type">
+                <option v-for="template in device_templates" name="template.type">
+                  {{template.type}}
+                </option>
+              </select>
+            </td>
+          </tr>
+          <!-- fields specific to device type -->
+          <tr v-for="form_field in device_form_fields(selected_device)">
+            <td>{{form_field.label}}</td>
+            <td>
+              <input type="text" v-bind:name="form_field.field_name" v-model="selected_device[form_field.key]">
+            </td>
+          </tr>
+
+        </table>
+        <!-- buttons -->
+        <div class="buttons_container">
+          <button v-if="selected_device === new_device" v-on:click="add_device_in_back_end">Create device</button>
+          <button v-if="selected_device !== new_device" v-on:click="edit_device_in_back_end">Update device</button>
+          <button v-if="selected_device !== new_device" v-on:click="delete_device_in_back_end">Delete device</button>
+          <button v-on:click="selected_device = {}">Cancel</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Device info form -->
-    <!-- Shown only if a device is selected (has an id) -->
-    <!-- This includes the new device -->
-    <div v-if="selected_device._id">
-      <div>
-        <label>ID: </label>
-        <input type="text" name="_id" v-bind:value="selected_device._id">
-      </div>
-      <div>
-        <!-- change this to a select field -->
-        <label>Type</label>
-        <input type="text" name="type" v-model="selected_device.type">
-      </div>
-      <div v-for="form_field in device_form_fields(selected_device)">
-        <label>{{form_field.label}}</label>
-        <input type="text" v-bind:name="form_field.field_name" v-model="selected_device[form_field.key]">
-      </div>
-      <button v-if="selected_device === new_device" v-on:click="add_device_in_back_end">Create device</button>
-      <button v-if="selected_device !== new_device" v-on:click="edit_device_in_back_end">Update device</button>
-      <button v-if="selected_device !== new_device" v-on:click="delete_device_in_back_end">Delete device</button>
-      <button v-if="selected_device !== new_device" v-on:click="selected_device = {}">Cancel</button>
-    </div>
+
+
+
+
 
 
     <!-- Modals -->
@@ -95,7 +115,11 @@
         <div id="sensor_modal_content"></div>
       </div>
     </div>
-  </div>
+
+  </div><!-- End of app -->
+
+
+
 
   <script src="js/device_templates.js"></script>
   <script src="js/manage_devices.js"></script>

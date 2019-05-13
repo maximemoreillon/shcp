@@ -19,15 +19,22 @@ body {
 }
 
 #app{
-  outline: 1px solid red;
-  width: 100%;
-  height: 100vh;
+  /* app is just a substitute for body */
 
-	/* flex */
-	display: flex;
+  display: flex;
+  justify-content: center;
+}
+
+.main {
+  margin: 25px;
+
+  display: flex;
   flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
+  align-items: center;
+}
+
+.main > * {
+  margin: 10px 0;
 }
 
 .floorplan_wrapper {
@@ -35,14 +42,16 @@ body {
   /* needs to be relative for device positioning */
   position: relative;
 
-  width: 50vmin;
+  width: 60vmin;
 }
+
+
 
 .floorplan {
   /* This is an <img> */
-  /* fit the container width */
   width: 100%;
 }
+
 
 
 .device {
@@ -74,4 +83,32 @@ body {
 
 .edit {
   color: #0000ce;
+}
+
+
+#properties_container {
+  width: 100%;
+}
+
+#properties_container table{
+  width: 100%;
+}
+
+#properties_container td {
+  padding: 0 5px;
+}
+
+#properties_container select, #properties_container input {
+  width: 100%;
+}
+
+#properties_container .buttons_container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+#properties_container .buttons_container > * {
+  margin: 5px;
 }

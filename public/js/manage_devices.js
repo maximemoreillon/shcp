@@ -9,6 +9,8 @@ var app = new Vue({
   data: {
     edit_mode: false,
     devices: [],
+    device_templates: device_templates,
+    form_fields: [],
     new_device : {
       _id: "new",
       type: 'new',
@@ -17,7 +19,6 @@ var app = new Vue({
         y : 0
       },
     },
-    form_fields: [],
     selected_device : {},
   },
   methods: {
@@ -29,9 +30,9 @@ var app = new Vue({
       else {
         // If not in edit mode, perform the action of the device
         // Look in device templates for matching device type and set action accordingly
-        for(var template_index=0; template_index<device_templates.length; template_index++){
-          if(device_templates[template_index].type === device.type){
-            return device_templates[template_index].onclick(device);
+        for(var template_index=0; template_index<this.device_templates.length; template_index++){
+          if(this.device_templates[template_index].type === device.type){
+            return this.device_templates[template_index].onclick(device);
           }
         }
         // If no match, return unkown
@@ -40,15 +41,15 @@ var app = new Vue({
     },
     device_icon: function(device){
       // Look in device templates for matching device type and set icon accordingly
-      for(var template_index=0; template_index<device_templates.length; template_index++){
-        if(device_templates[template_index].type === device.type){
+      for(var template_index=0; template_index<this.device_templates.length; template_index++){
+        if(this.device_templates[template_index].type === device.type){
           // Check if device is connected
           if(device.state){
             if(device.state === "{'state':'disconnected'}"){
               return "mdi-wifi-off";
             }
           }
-          return device_templates[template_index].icon;
+          return this.device_templates[template_index].icon;
         }
       }
       // If no match, return unkown
@@ -56,9 +57,9 @@ var app = new Vue({
     },
     device_form_fields: function(device){
       // Look in device templates for matching device type and set fields accordingly
-      for(var template_index=0; template_index<device_templates.length; template_index++){
-        if(device_templates[template_index].type === device.type){
-          return device_templates[template_index].properties;
+      for(var template_index=0; template_index<this.device_templates.length; template_index++){
+        if(this.device_templates[template_index].type === device.type){
+          return this.device_templates[template_index].properties;
         }
       }
       // If no match, return unkown
@@ -83,9 +84,11 @@ var app = new Vue({
       }
     },
     floorplan_clicked: function(event) {
-      this.new_device.position.x = 100.00*event.offsetX/event.target.offsetWidth;
-      this.new_device.position.y = 100.00*event.offsetY/event.target.offsetHeight;
-      this.selected_device = this.new_device;
+      if(this.edit_mode){
+        this.new_device.position.x = 100.00*event.offsetX/event.target.offsetWidth;
+        this.new_device.position.y = 100.00*event.offsetY/event.target.offsetHeight;
+        this.selected_device = this.new_device;
+      }
     },
     get_device_properties_selected_device: function(){
 
@@ -97,10 +100,10 @@ var app = new Vue({
       device.position = app.selected_device.position;
 
       // Look in device templates for matching device
-      for(var template_index=0; template_index<device_templates.length; template_index++){
-        if(device_templates[template_index].type === device.type){
-          for(var property_index=0; property_index<device_templates[template_index].properties.length; property_index++){
-            device[device_templates[template_index].properties[property_index].field_name] = app.selected_device[device_templates[template_index].properties[property_index].field_name];
+      for(var template_index=0; template_index<this.device_templates.length; template_index++){
+        if(this.device_templates[template_index].type === device.type){
+          for(var property_index=0; property_index<this.device_templates[template_index].properties.length; property_index++){
+            device[this.device_templates[template_index].properties[property_index].key] = app.selected_device[this.device_templates[template_index].properties[property_index].key];
           }
         }
       }
@@ -111,16 +114,20 @@ var app = new Vue({
       console.log("[WS] add_one_device_in_back_end");
       var device = this.get_device_properties_selected_device();
       socket.emit('add_one_device_in_back_end', device);
+      this.disable_edit_mode();
     },
     edit_device_in_back_end: function() {
       console.log("[WS] edit_one_device_in_back_end");
       var device = this.get_device_properties_selected_device();
+      console.log(device)
       socket.emit('edit_one_device_in_back_end', device);
+      this.disable_edit_mode();
     },
     delete_device_in_back_end: function() {
       console.log("[WS] delete_one_device_in_back_end");
       var device = this.get_device_properties_selected_device();
       socket.emit('delete_one_device_in_back_end', device);
+      this.disable_edit_mode();
     },
   },
 })
@@ -153,6 +160,8 @@ socket.on('delete_some_in_front_end', function (device_array) {
   delete_some_devices_in_front_end(device_array);
 });
 
+
+// THOSE FUNCTIONS COULD BE PUT IN THE APP
 function delete_all_devices_in_front_end() {
   // delete all devices
   app.devices.splice(0,app.devices.length);
