@@ -11,15 +11,18 @@
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/styles.css" type="text/css">
+  <link rel="stylesheet" href="css/vue_modals.css" type="text/css">
   <link rel="stylesheet" href="https://webcomponents.maximemoreillon.com/modals/modals.css" type="text/css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
   <link rel="stylesheet" href="//cdn.materialdesignicons.com/3.5.95/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.0/c3.min.css">
 
   <!-- JS -->
   <script src="https://webcomponents.maximemoreillon.com/ie_polyfill/ie_polyfill.js"></script> <!-- Compatibility for array includes in IE (Surface RT) -->
   <script src="https://webcomponents.maximemoreillon.com/modals/modals.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.0/c3.min.js"></script>
 
 </head>
 <body>
@@ -27,76 +30,48 @@
 
     <div class="main">
       <div id="floorplan_wrapper" class="floorplan_wrapper">
+
+        <!-- floorplan -->
         <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg" v-on:click="floorplan_clicked">
 
         <!-- devices -->
-        <device
+        <!-- Dynamic Vue.js component -->
+        <component
           v-for="device in devices"
-          v-bind:key="device.id"
-          v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
-          v-bind:class="[device_icon(device), {on: device_state(device)}, {edit: edit_mode}]"
-          v-on:click.native="device_action(device)"
-        ></device>
+          v-bind:key="device._id"
+          v-bind:is="device.type"
+          v-bind:device="device"
+          v-bind:edit_mode="edit_mode"
+        ></component>
 
         <!-- new device (show an icon where the new device will be) -->
-        <device
-          class="device mdi mdi-plus-circle-outline"
-          v-if="edit_mode && selected_device === new_device"
-          v-bind:style="{left: new_device.position.x + '%',top: new_device.position.y + '%'}"
-          v-bind:class="{edit: edit_mode}"
-        ></device>
+        <new-device
+          v-bind:device="new_device"
+          v-bind:show="show_new_device"
+          v-bind:modal_open="new_device_modal_open"
+          v-on:close_new_device_modal="close_new_device_modal"
+        ></new-device>
 
       </div><!-- end of floorplan wrapper -->
 
-      <!-- checkbox to enable edit mode -->
+      <!-- Button to enable edit mode -->
       <div>
         <button v-on:click="toggle_edit_mode">Toggle edit mode</button>
       </div>
 
-      <!-- Device info form -->
-      <!-- Shown only if a device is selected (has an id) -->
-      <!-- This includes the new device -->
-      <div id="properties_container" v-if="selected_device._id">
-        <!-- Type selection -->
 
-        <table >
-          <!-- Type selection -->
-          <tr>
-            <td>Type</td>
-            <td>
-              <select id="type_selector" v-model="selected_device.type">
-                <option v-for="template in device_templates" name="template.type">
-                  {{template.type}}
-                </option>
-              </select>
-            </td>
-          </tr>
-          <!-- fields specific to device type -->
-          <tr v-for="form_field in device_form_fields(selected_device)">
-            <td>{{form_field.label}}</td>
-            <td>
-              <input type="text" v-bind:name="form_field.field_name" v-model="selected_device[form_field.key]">
-            </td>
-          </tr>
+    </div><!-- end of main -->
 
-        </table>
-        <!-- buttons -->
-        <div class="buttons_container">
-          <button v-if="selected_device === new_device" v-on:click="add_device_in_back_end">Create device</button>
-          <button v-if="selected_device !== new_device" v-on:click="edit_device_in_back_end">Update device</button>
-          <button v-if="selected_device !== new_device" v-on:click="delete_device_in_back_end">Delete device</button>
-          <button v-on:click="selected_device = {}">Cancel</button>
+
+    <!-- Modals -->
+    <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
+      <div class="modal_container">
+        <div id="sensor_modal_content">
+
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-    <!-- Modals -->
     <!-- Modal for connection -->
     <div id="disconnected_modal" class="modal_wrapper">
       <div class="modal_container">
@@ -110,18 +85,14 @@
       </div>
     </div>
 
-    <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
-      <div class="modal_container">
-        <div id="sensor_modal_content"></div>
-      </div>
-    </div>
+
 
   </div><!-- End of app -->
 
 
 
 
-  <script src="js/device_templates.js"></script>
+  <script src="js/vue_components.js"></script>
   <script src="js/manage_devices.js"></script>
 
 </body>

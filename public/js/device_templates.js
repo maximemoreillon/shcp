@@ -36,11 +36,12 @@ var device_templates = [
     type: "sensor",
     properties: [
       {key: "status_topic", label:"Status topic"},
-      {key: "key", label:"JSON key"},
-      {key: "unit", label:"unit"},
+      {key: "name", label: "Name"},
+      {key: "key", label: "JSON key"},
+      {key: "unit", label: "Unit"},
     ],
     icon: "mdi-gauge",
-    onclick: function(device){open_sensor_modal(device)}
+    onclick: function(device){open_sensor_modal_v2(device)}
   },
   {
     type: "camera",
@@ -109,6 +110,10 @@ function open_sensor_modal(device){
   }
 
   document.getElementById("sensor_modal_content").innerHTML = modal_content;
+
+}
+
+function open_sensor_modal_v2(device){
 
 }
 

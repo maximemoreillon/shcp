@@ -103,31 +103,8 @@ app.use(expressSession({
 
 
 // Express routing
-app.get('/', function(req, res) {
+app.get('/',checkAuth, function(req, res) {
   res.render('index');
-});
-
-app.get('/edit_floorplan', function(req, res) {
-  res.render('edit_floorplan');
-});
-
-app.get('/show_device', function(req, res) {
-
-  if(req.query._id){
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db(db_config.db_name);
-      var query = {_id: ObjectID(req.query._id)};
-      dbo.collection(db_config.collection_name).findOne(query, function(err, result) {
-        if (err) throw err;
-        db.close();
-        res.render('show_device', {device_properties: result});
-      });
-    });
-  }
-  else{
-    res.render('show_device', {data: "NO DATA"});
-  }
 });
 
 app.get('/dump', function(req, res) {

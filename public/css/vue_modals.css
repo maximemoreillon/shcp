@@ -1,0 +1,58 @@
+.vue_modal_wrapper{
+
+  /* always on same spot */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 11;
+
+  /* occupy all screen */
+  width: 100vw;
+  height: 100vh;
+
+  /* flex for content */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #44444444;
+
+  /* This changes at the end of the transition */
+  visibility: hidden;
+
+  /* Opacity of modal container background */
+  opacity: 0;
+
+  transition: 0.5s;
+
+}
+
+.vue_modal_container{
+
+  z-index: 12;
+
+  width: 50%;
+
+  padding: 25px;
+
+  /* flex for content */
+  text-align: center;
+
+  opacity: 0;
+
+  background-color: #ffffff;
+
+  transition: 0.5s;
+
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+.modal_wrapper_open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal_container_open {
+  opacity: 1;
+  width: 80%;
+}

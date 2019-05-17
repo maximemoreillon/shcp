@@ -10,6 +10,8 @@ body {
 
 	margin: 0px;
 
+
+
 	/* visuals */
 	background: white;
 
@@ -18,16 +20,19 @@ body {
 
 }
 
-#app{
+.main_wrapper, #app{
   /* app is just a substitute for body */
+
+  min-height: 100vh;
 
   display: flex;
   justify-content: center;
+  align-items: center;
+
+  outline: 1px solid red;
 }
 
 .main {
-  margin: 25px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,8 +58,12 @@ body {
 }
 
 
+.device_wrapper{
+
+}
 
 .device {
+  /* This is a div */
 
   /* ensure above rest */
   z-index: 10;
@@ -65,16 +74,16 @@ body {
   /* Position by center and not by corner */
   transform: translate(-50%,-50%);
 
+  /* default color */
+  color: #535353;
+
+  /* THIS COULD BE MOVED TO SPAN */
   /* Misc visual */
   cursor: pointer;
-  color: #535353;
+
   transition: color 0.5s;
   font-size: 5vmin;
 
-  /* content positioning */
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .on {
@@ -85,30 +94,44 @@ body {
   color: #0000ce;
 }
 
+.edit_form {
+  position: absolute;
+}
 
-#properties_container {
+
+.properties_container {
   width: 100%;
 }
 
-#properties_container table{
+.properties_container table{
   width: 100%;
 }
 
-#properties_container td {
+.properties_container td {
   padding: 0 5px;
 }
 
-#properties_container select, #properties_container input {
+.properties_container select, .properties_container input {
   width: 100%;
 }
 
-#properties_container .buttons_container {
+.properties_container .buttons_container {
   width: 100%;
   display: flex;
   justify-content: center;
   margin-top: 5px;
 }
 
-#properties_container .buttons_container > * {
+.properties_container .buttons_container > * {
   margin: 5px;
+}
+
+form {
+
+}
+
+form > input {
+  width: 25vw;
+  max-width: 300px;
+  margin: 10px;
 }

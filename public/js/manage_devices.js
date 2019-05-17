@@ -1,79 +1,33 @@
 var socket = io();
 
-Vue.component('device',{
-  template: '<span class="device mdi"></span>',
-});
-
+// The Vue.js App
 var app = new Vue({
   el: '#app',
   data: {
-    edit_mode: false,
     devices: [],
-    device_templates: device_templates,
-    form_fields: [],
+    edit_mode: false,
+
     new_device : {
       _id: "new",
-      type: 'new',
+      type: 'light',
       position: {
         x : 0,
         y : 0
       },
     },
-    selected_device : {},
+    // suboptimal
+    show_new_device: false,
+    new_device_modal_open: false,
   },
   methods: {
-    device_action: function(device){
-      if(this.edit_mode){
-        // make a copy of the device
-        this.selected_device = JSON.parse(JSON.stringify(device));
-      }
-      else {
-        // If not in edit mode, perform the action of the device
-        // Look in device templates for matching device type and set action accordingly
-        for(var template_index=0; template_index<this.device_templates.length; template_index++){
-          if(this.device_templates[template_index].type === device.type){
-            return this.device_templates[template_index].onclick(device);
-          }
-        }
-        // If no match, return unkown
-        return alert("No action for given device");
-      }
-    },
-    device_icon: function(device){
-      // Look in device templates for matching device type and set icon accordingly
-      for(var template_index=0; template_index<this.device_templates.length; template_index++){
-        if(this.device_templates[template_index].type === device.type){
-          // Check if device is connected
-          if(device.state){
-            if(device.state === "{'state':'disconnected'}"){
-              return "mdi-wifi-off";
-            }
-          }
-          return this.device_templates[template_index].icon;
-        }
-      }
-      // If no match, return unkown
-      return "mdi-help";
-    },
-    device_form_fields: function(device){
-      // Look in device templates for matching device type and set fields accordingly
-      for(var template_index=0; template_index<this.device_templates.length; template_index++){
-        if(this.device_templates[template_index].type === device.type){
-          return this.device_templates[template_index].properties;
-        }
-      }
-      // If no match, return unkown
-      return [];
-    },
-    device_state: function(device){
-      return device.state && device.payload_on && device.state === device.payload_on;
-    },
+
     enable_edit_mode: function(){
       this.edit_mode = true;
     },
     disable_edit_mode: function(){
       this.edit_mode = false;
-      this.selected_device = {};
+      this.show_new_device = false;
+      this.new_device_modal_open = false;
     },
     toggle_edit_mode : function() {
       if(this.edit_mode){
@@ -87,50 +41,17 @@ var app = new Vue({
       if(this.edit_mode){
         this.new_device.position.x = 100.00*event.offsetX/event.target.offsetWidth;
         this.new_device.position.y = 100.00*event.offsetY/event.target.offsetHeight;
-        this.selected_device = this.new_device;
+        this.show_new_device = true;
+        this.new_device_modal_open = true;
       }
     },
-    get_device_properties_selected_device: function(){
+    close_new_device_modal: function(){
+      this.show_new_device = false;
+      this.new_device_modal_open = false;
+    }
 
-      var device = {};
-
-      // Basic info
-      device._id = app.selected_device._id;
-      device.type = app.selected_device.type;
-      device.position = app.selected_device.position;
-
-      // Look in device templates for matching device
-      for(var template_index=0; template_index<this.device_templates.length; template_index++){
-        if(this.device_templates[template_index].type === device.type){
-          for(var property_index=0; property_index<this.device_templates[template_index].properties.length; property_index++){
-            device[this.device_templates[template_index].properties[property_index].key] = app.selected_device[this.device_templates[template_index].properties[property_index].key];
-          }
-        }
-      }
-
-      return device;
-    },
-    add_device_in_back_end: function() {
-      console.log("[WS] add_one_device_in_back_end");
-      var device = this.get_device_properties_selected_device();
-      socket.emit('add_one_device_in_back_end', device);
-      this.disable_edit_mode();
-    },
-    edit_device_in_back_end: function() {
-      console.log("[WS] edit_one_device_in_back_end");
-      var device = this.get_device_properties_selected_device();
-      console.log(device)
-      socket.emit('edit_one_device_in_back_end', device);
-      this.disable_edit_mode();
-    },
-    delete_device_in_back_end: function() {
-      console.log("[WS] delete_one_device_in_back_end");
-      var device = this.get_device_properties_selected_device();
-      socket.emit('delete_one_device_in_back_end', device);
-      this.disable_edit_mode();
-    },
   },
-})
+}) // End of app
 
 
 // respond to websocket events
