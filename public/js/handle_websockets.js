@@ -1,58 +1,5 @@
+// Instance of socket.io
 var socket = io();
-
-// The Vue.js App
-var app = new Vue({
-  el: '#app',
-  data: {
-    devices: [],
-    edit_mode: false,
-
-    new_device : {
-      _id: "new",
-      type: 'light',
-      position: {
-        x : 0,
-        y : 0
-      },
-    },
-    // suboptimal
-    show_new_device: false,
-    new_device_modal_open: false,
-  },
-  methods: {
-
-    enable_edit_mode: function(){
-      this.edit_mode = true;
-    },
-    disable_edit_mode: function(){
-      this.edit_mode = false;
-      this.show_new_device = false;
-      this.new_device_modal_open = false;
-    },
-    toggle_edit_mode : function() {
-      if(this.edit_mode){
-        this.disable_edit_mode();
-      }
-      else {
-        this.enable_edit_mode();
-      }
-    },
-    floorplan_clicked: function(event) {
-      if(this.edit_mode){
-        this.new_device.position.x = 100.00*event.offsetX/event.target.offsetWidth;
-        this.new_device.position.y = 100.00*event.offsetY/event.target.offsetHeight;
-        this.show_new_device = true;
-        this.new_device_modal_open = true;
-      }
-    },
-    close_new_device_modal: function(){
-      this.show_new_device = false;
-      this.new_device_modal_open = false;
-    }
-
-  },
-}) // End of app
-
 
 // respond to websocket events
 socket.on('connect', function() {
