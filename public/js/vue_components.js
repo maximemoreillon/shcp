@@ -26,6 +26,8 @@ Vue.component('modal',{
   }
 });
 
+
+
 Vue.component('edit-form',{
   props: ['device_copy', 'form_fields'],
   template: `
@@ -129,7 +131,53 @@ Vue.component('new_device_form',{
   },
 });
 
-
+Vue.component('device_icon',{
+  props: {
+    device: {
+      type: Object,
+      required: true,
+    },
+    icon_class: {
+      type: [Array, String],
+      default: "mdi-help"
+    },
+    edit_mode: {
+      type: Boolean,
+      default: false
+    },
+  },
+  template: `
+    <div
+      class="device_icon_wrapper"
+      v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
+    >
+      <span
+        class="device_icon mdi"
+        v-bind:class="[icon_class, {edit:edit_mode}]"
+        v-on:click="icon_clicked"
+      ></span>
+      <div
+        class="icon_badge"
+        v-if="device_disconnected"
+      >
+        <span class="mdi mdi-wifi-off"></span>
+      </div>
+    </div>
+  `,
+  methods: {
+    icon_clicked: function(){
+      this.$emit('icon_clicked');
+    }
+  },
+  computed: {
+    device_disconnected: function(){
+      if(this.device.state){
+        if(this.device.state === "{'state':'disconnected'}") return true;
+      }
+      return false;
+    }
+  }
+});
 
 // A general device
 Vue.component('device',{
@@ -163,12 +211,11 @@ Vue.component('device',{
     <!-- wrap everything into a DIV because single root element -->
 
     <!-- the icon displayed on the floorplan -->
-    <span
-      class="device mdi"
-      v-bind:class="[icon_class, {edit:edit_mode}]"
-      v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
-      v-on:click="icon_clicked"
-    ></span>
+    <device_icon
+      v-bind:device="device"
+      v-bind:icon_class="icon_class"
+      v-on:icon_clicked="icon_clicked"
+    ></device_icon>
 
     <!-- form to edit the device -->
     <!-- Currently placed inside a modal -->
@@ -464,7 +511,7 @@ Vue.component('camera',{
         v-bind:show="modal_open"
         v-on:close_modal="close_modal"
       >
-        <img v-bind:src="modal_content">
+        <img class="camera_image" v-bind:src="modal_content">
       </modal>
     </device>
   `,

@@ -21,17 +21,14 @@
   visibility: hidden;
 
   /* Opacity of modal container background */
-  opacity: 0;
-
   transition: 0.5s;
-
 }
 
 .vue_modal_container{
 
   z-index: 12;
 
-  width: 50%;
+  width: 50vw;
 
   padding: 25px;
 
@@ -54,5 +51,5 @@
 
 .modal_container_open {
   opacity: 1;
-  width: 80%;
+  width: 90vw;
 }
