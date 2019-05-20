@@ -32,9 +32,24 @@ Vue.component('modal',{
 
 Vue.component('edit-form',{
   props: ['device_copy', 'form_fields'],
+  data: function() {
+    return {
+      device_types: devices_types,
+    }
+  },
   template: `
     <div class = "properties_container">
       <table>
+        <tr>
+          <td>Type</td>
+          <td>
+            <select id="type_selector" v-model="device_copy.type">
+              <option v-for="device_type in device_types">
+                {{device_type}}
+              </option>
+            </select>
+          </td>
+        </tr>
         <tr v-for="form_field in form_fields" v-bind:key="form_field.key">
           <td>{{form_field.label}}</td>
           <td>
@@ -94,13 +109,7 @@ Vue.component('new_device_form',{
   props: ['device_copy'],
   data: function() {
     return {
-      device_types: [
-        'light',
-        'heater',
-        'fan',
-        'sensor',
-        'camera'
-      ],
+      device_types: devices_types,
     }
   },
   template: `
@@ -143,10 +152,6 @@ Vue.component('device_icon',{
       type: [Array, String],
       default: "mdi-help"
     },
-    edit_mode: {
-      type: Boolean,
-      default: false
-    },
   },
   template: `
     <div
@@ -155,7 +160,7 @@ Vue.component('device_icon',{
     >
       <span
         class="device_icon mdi"
-        v-bind:class="[icon_class, {edit:edit_mode}]"
+        v-bind:class="icon_class"
         v-on:click="icon_clicked"
       ></span>
       <div
@@ -274,11 +279,11 @@ Vue.component('new-device',{
     <!-- wrap everything into a DIV because single root element -->
 
     <!-- the icon displayed on the floorplan -->
-    <span
-      class="device mdi mdi-plus-circle-outline edit"
+    <device_icon
+      v-bind:device="device"
       v-if="show"
-      v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
-    ></span>
+      icon_class="mdi-plus-circle-outline"
+    ></device_icon>
 
     <!-- form to add the device -->
     <!-- Currently placed inside a modal -->

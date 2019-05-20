@@ -22,6 +22,7 @@
   <script src="https://webcomponents.maximemoreillon.com/modals/modals.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.0/c3.min.js"></script>
 
 </head>
@@ -32,7 +33,13 @@
       <div id="floorplan_wrapper" class="floorplan_wrapper">
 
         <!-- floorplan -->
-        <img id="floorplan" class="floorplan" src="images/floorplan/floorplan.svg" v-on:click="floorplan_clicked">
+        <img
+          id="floorplan"
+          class="floorplan"
+          src="images/floorplan/floorplan.svg"
+          v-on:click="floorplan_clicked"
+          v-bind:class="{edit: edit_mode}"
+        >
 
         <!-- devices -->
         <!-- Dynamic Vue.js component -->
@@ -95,6 +102,13 @@
   <script src="js/devices.js"></script>
   <script src="js/vue_app.js"></script>
   <script src="js/handle_websockets.js"></script>
+  <script>
+  // populate gauge
+
+
+
+
+  </script>
 
 </body>
 </html>

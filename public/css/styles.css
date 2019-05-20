@@ -57,6 +57,10 @@ body {
   width: 100%;
 }
 
+.edit {
+  background-color: #eeeeff;
+}
+
 .device_wrapper {
 
 }
@@ -123,9 +127,7 @@ body {
   color: var(--accent_color);
 }
 
-.edit {
-  color: #0000ce;
-}
+
 
 .edit_form {
   position: absolute;
