@@ -1,5 +1,3 @@
-
-
 Vue.component('modal',{
   props: {
     show: {
@@ -11,13 +9,18 @@ Vue.component('modal',{
     <div
       class="vue_modal_wrapper"
       v-on:click.self="close_modal"
-      v-bind:class="[{modal_wrapper_open: show}]"
+      v-bind:class="{modal_wrapper_open: show}"
     >
       <div
         class="vue_modal_container"
-        v-bind:class="[{modal_container_open: show}]"
+        v-bind:class="{modal_container_open: show}"
       >
-        <slot></slot>
+        <div
+          class="vue_modal_content"
+          v-bind:class="{modal_content_visible: show}"
+        >
+          <slot></slot>
+        </div>
       </div>
     </div>
   `,
@@ -154,15 +157,19 @@ Vue.component('device_icon',{
     },
   },
   template: `
+    <!-- Wrapper because unique root element -->
     <div
       class="device_icon_wrapper"
       v-bind:style="{left: device.position.x + '%',top: device.position.y + '%'}"
     >
+      <!-- The icon itself -->
       <span
         class="device_icon mdi"
         v-bind:class="icon_class"
         v-on:click="icon_clicked"
       ></span>
+
+      <!-- Badge for additional info -->
       <div
         class="icon_badge"
         v-if="device_disconnected"

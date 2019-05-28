@@ -12,7 +12,7 @@ var httpProxy = require('http-proxy');
 // Custom modules
 var db_config = require ('./config/db_config');
 var misc_config = require('./config/misc_config');
-var credentials = require('./config/credentials');
+const credentials = require('../common/credentials');
 
 // MongoDB objects
 var MongoClient = MongoDB.MongoClient;
@@ -46,7 +46,7 @@ var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 // Function to check if user is logged in (has a user ID session)
 function checkAuth(req, res, next) {
   if (!req.session.user_id) {
-    res.render('login.ejs');
+    res.redirect('/login');
   }
   else {
     next();
@@ -94,15 +94,36 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(expressSession({
-    secret: 'keyboard cat',
+    secret: credentials.session_secret,
     resave: false,
     saveUninitialized: true
 }));
 
 
 // Express routing
+app.get('/login', function(req, res) {
+  res.render('login.ejs');
+});
+
+app.post('/login', function (req, res) {
+  var post = req.body;
+  if (post.user === credentials.app_username && post.password === credentials.app_password) {
+    // FOR NOW ONLY ONE USER
+    req.session.user_id = 1;
+    res.redirect('/');
+  }
+  else {
+    // Improve this!
+    res.render('login.ejs', {error_message: "Wrong username/password"} );
+  }
+});
+
+app.get('/logout', function (req, res) {
+  delete req.session.user_id;
+  res.redirect('/');
+});
+
 app.get('/',checkAuth, function(req, res) {
   res.render('index');
 });
@@ -151,27 +172,7 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
 
 });
 
-app.get('/login', function(req, res) {
-  res.render('login.ejs');
-});
 
-app.post('/login', function (req, res) {
-  var post = req.body;
-  if (post.user === credentials.app_username && post.password === credentials.app_password) {
-    // FOR NOW ONLY ONE USER
-    req.session.user_id = 1;
-    res.redirect('/');
-  }
-  else {
-    // Improve this!
-    res.render('login.ejs', {error: "Wrong username/password"} );
-  }
-});
-
-app.get('/logout', function (req, res) {
-  delete req.session.user_id;
-  res.redirect('/');
-});
 
 
 

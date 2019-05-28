@@ -1,3 +1,7 @@
+:root {
+  --transition_time: 0.5s;
+}
+
 .vue_modal_wrapper{
 
   /* always on same spot */
@@ -18,31 +22,46 @@
   background-color: #44444444;
 
   /* This changes at the end of the transition */
+  opacity: 0;
   visibility: hidden;
 
   /* Opacity of modal container background */
-  transition: 0.5s;
+  transition: var(--transition_time);
 }
 
 .vue_modal_container{
 
   z-index: 12;
 
-  width: 50vw;
+  width: 20vw;
 
-  padding: 25px;
-
-  /* flex for content */
-  text-align: center;
 
   opacity: 0;
 
   background-color: #ffffff;
 
-  transition: 0.5s;
+  transition: var(--transition_time);
 
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+
+  white-space: nowrap;
+
+  /* flex for content */
+  text-align: center;
+  display: flex;
+  justify-content: center;
 }
+
+.vue_modal_content {
+  transition: var(--transition_time);
+  opacity: 0;
+
+  /* foce width for c3 js content */
+  width: 90vw;
+
+  padding: 15px;
+}
+
 
 .modal_wrapper_open {
   visibility: visible;
@@ -52,4 +71,8 @@
 .modal_container_open {
   opacity: 1;
   width: 90vw;
+}
+
+.modal_content_visible {
+  opacity: 1;
 }
