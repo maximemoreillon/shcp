@@ -85,9 +85,9 @@ function mqtt_subscribe_all() {
 }
 
 
-////////////////////
-// EXPRESS CONFIG //
-////////////////////
+/////////////
+// EXPRESS //
+/////////////
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -142,7 +142,10 @@ app.get('/dump', function(req, res) {
 
 app.get('/camera', checkAuthNoLogin, function(req, res) {
 
+  // API to proxy camera stream to the front end
   if(typeof req.query._id !== 'undefined'){
+
+
     MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
@@ -153,16 +156,26 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
         if (err) throw err;
         db.close();
 
-        console.log("[Camera] Currently streaming " + result.stream_url);
+        console.log(result.stream_url)
+        // If the DB query was successful, create proxy to camera
+        if(typeof result.stream_url !== 'undefined'){
 
-        // Removing some headers because the camera doesn't support large headers
-        delete req.headers.cookie;
-        delete req.headers.via;
-        delete req.headers.referer;
+          console.log("[Camera] Currently streaming " + result.stream_url);
 
-        cameraProxy.web(req, res, {target: result.stream_url}, function(proxy_error) {
-          if(proxy_error) console.log(proxy_error)
-        });
+          // Removing some headers because some cameras (ESP-32 cam) don't support large headers
+          delete req.headers.cookie;
+          delete req.headers.via;
+          delete req.headers.referer;
+
+          cameraProxy.web(req, res, {target: result.stream_url}, function(proxy_error) {
+            if(proxy_error) console.log(proxy_error)
+          });
+
+        }
+        else {
+          console.log("[Camera] Camera not found in DB");
+        }
+
       });
     });
   }

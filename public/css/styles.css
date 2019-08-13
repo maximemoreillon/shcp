@@ -1,4 +1,5 @@
 :root {
+  --primary_color: #535353;
   --accent_color: #ce0000;
 }
 
@@ -10,8 +11,6 @@ body {
 
 	margin: 0px;
 
-
-
 	/* visuals */
 	background: white;
 
@@ -20,22 +19,22 @@ body {
 
 }
 
-.main_wrapper, #app{
+#app{
   /* app is just a substitute for body */
 
   min-height: 100vh;
 
+  /* Centering content with flex */
   display: flex;
   justify-content: center;
   align-items: center;
-
-  outline: 1px solid red;
 }
 
-.main {
+main, .main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 .main > * {
@@ -47,7 +46,8 @@ body {
   /* needs to be relative for device positioning */
   position: relative;
 
-  width: 60vmin;
+  width: 90vw;
+  max-width: 60vh;
 }
 
 
@@ -57,9 +57,7 @@ body {
   width: 100%;
 }
 
-.edit {
-  background-color: #eeeeff;
-}
+
 
 .device_wrapper {
 
@@ -76,27 +74,27 @@ body {
   /* Position by center and not by corner */
   transform: translate(-50%,-50%);
 
-  /* default color */
-  color: #535353;
-
   /* Misc visual */
   cursor: pointer;
-
-  width: 5vmin;
-  height: 5vmin;
 
   display: flex;
   justify-content: center;
   align-items: center;
 
-
 }
 
 .device_icon {
 
-  font-size: 5vmin;
+  /* default color */
+  color: #535353;
+
+  font-size: 6vmin;
   transition: color 0.5s;
 
+}
+
+.on {
+  color: var(--accent_color);
 }
 
 .icon_badge{
@@ -106,11 +104,11 @@ body {
 
   transform: translate(-50%,-50%);
 
-  background-color: #ce0000;
+  border: 0.3vmin solid white;
   border-radius: 50%;
 
-  width: 60%;
-  height: 60%;
+  width: 3vmin;
+  height: 3vmin;
 
   color: white;
 
@@ -122,10 +120,23 @@ body {
 
 }
 
-.on {
-  color: var(--accent_color);
+.warning_badge {
+  background-color: var(--accent_color);
 }
 
+.edit_badge {
+  background-color: var(--primary_color);
+}
+
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+
+
+.fade-enter, .fade-leave-to{
+  opacity: 0;
+}
 
 
 .edit_form {
@@ -160,6 +171,22 @@ body {
   margin: 5px;
 }
 
+.camera_image_wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .camera_image {
-  width: 90%;
+  max-width: 100%;
+}
+
+.gauge_container{
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gauge {
+  position: absolute;
+  width: 50vw;
 }

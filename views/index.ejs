@@ -11,7 +11,6 @@
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/styles.css" type="text/css">
-  <link rel="stylesheet" href="css/vue_modals.css" type="text/css">
   <link rel="stylesheet" href="https://webcomponents.maximemoreillon.com/modals/modals.css" type="text/css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
   <link rel="stylesheet" href="//cdn.materialdesignicons.com/3.5.95/css/materialdesignicons.min.css">
@@ -27,6 +26,7 @@
 
 </head>
 <body>
+
   <div id="app">
 
     <div class="main">
@@ -38,7 +38,6 @@
           class="floorplan"
           src="images/floorplan/floorplan.svg"
           v-on:click="floorplan_clicked"
-          v-bind:class="{edit: edit_mode}"
         >
 
         <!-- devices -->
@@ -63,21 +62,15 @@
 
       <!-- Button to enable edit mode -->
       <div>
-        <button v-on:click="toggle_edit_mode">Toggle edit mode</button>
+        <span
+          class="mdi device_icon mdi-pencil"
+          v-bind:class="edit_button_class"
+          v-on:click="toggle_edit_mode"
+        ><span>
       </div>
 
 
     </div><!-- end of main -->
-
-
-    <!-- Modals -->
-    <div id="sensor_modal" class="modal_wrapper" onclick="close_modal_by_background_click(this, event)">
-      <div class="modal_container">
-        <div id="sensor_modal_content">
-
-        </div>
-      </div>
-    </div>
 
     <!-- Modal for connection -->
     <div id="disconnected_modal" class="modal_wrapper">
@@ -86,11 +79,6 @@
       </div>
     </div>
 
-    <div id="camera_modal" class="modal_wrapper" onclick="close_camera_modal_by_background_click(this, event)">
-      <div class="modal_container">
-        <img id="camera_image" src="images/devices/cctv.svg">
-      </div>
-    </div>
 
 
 

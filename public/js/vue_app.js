@@ -7,20 +7,15 @@ Vue.component('modal',{
   },
   template: `
     <div
-      class="vue_modal_wrapper"
+      class="modal_wrapper"
       v-on:click.self="close_modal"
-      v-bind:class="{modal_wrapper_open: show}"
+      v-bind:class="{modal_wrapper_visible: show}"
     >
       <div
-        class="vue_modal_container"
-        v-bind:class="{modal_container_open: show}"
+        class="modal_container"
+        v-bind:class="{modal_container_visible: show}"
       >
-        <div
-          class="vue_modal_content"
-          v-bind:class="{modal_content_visible: show}"
-        >
-          <slot></slot>
-        </div>
+        <slot></slot>
       </div>
     </div>
   `,
@@ -155,6 +150,10 @@ Vue.component('device_icon',{
       type: [Array, String],
       default: "mdi-help"
     },
+    edit_mode: {
+      type: Boolean,
+      default: false
+    },
   },
   template: `
     <!-- Wrapper because unique root element -->
@@ -169,13 +168,23 @@ Vue.component('device_icon',{
         v-on:click="icon_clicked"
       ></span>
 
-      <!-- Badge for additional info -->
+      <!-- Badges for additional info -->
       <div
-        class="icon_badge"
+        class="icon_badge warning_badge"
         v-if="device_disconnected"
       >
         <span class="mdi mdi-wifi-off"></span>
       </div>
+
+      <transition name="fade">
+        <div
+          class="icon_badge edit_badge"
+          v-if="edit_mode"
+        >
+          <span class="mdi mdi-pencil"></span>
+        </div>
+      </transition>
+
     </div>
   `,
   methods: {
@@ -228,6 +237,7 @@ Vue.component('device',{
     <device_icon
       v-bind:device="device"
       v-bind:icon_class="icon_class"
+      v-bind:edit_mode="edit_mode"
       v-on:icon_clicked="icon_clicked"
     ></device_icon>
 
@@ -361,7 +371,13 @@ var app = new Vue({
     close_new_device_modal: function(){
       this.show_new_device = false;
       this.new_device_modal_open = false;
-    }
+    },
 
   },
+  computed: {
+    edit_button_class: function(){
+      if(this.edit_mode) return "mdi-pencil-off"
+      else return "mdi-pencil"
+    }
+  }
 }) // End of app

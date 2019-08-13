@@ -289,7 +289,13 @@ Vue.component('sensor_gauge',{
           {{modal_title}}
         </h3>
 
-        <div v-bind:id="'chart_' + device._id"></div>
+        <div class="gauge_container">
+          <div
+            class="gauge"
+            v-bind:id="'chart_' + device._id"
+          ></div>
+        </div>
+
 
       </modal>
     </device>
@@ -408,7 +414,9 @@ Vue.component('camera',{
         v-bind:show="modal_open"
         v-on:close_modal="close_modal"
       >
-        <img class="camera_image" v-bind:src="modal_content">
+        <div class="camera_image_wrapper">
+          <img class="camera_image" v-bind:src="modal_content">
+        </div>
       </modal>
     </device>
   `,
