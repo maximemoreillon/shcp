@@ -5,7 +5,6 @@ var devices_types = [
   'ac',
   'sensor',
   'camera',
-  'sensor_gauge'
 ];
 
 // Functions shared across multiple devices

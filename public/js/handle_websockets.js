@@ -5,6 +5,12 @@ var socket = io();
 socket.on('connect', function() {
   console.log("[WS] connected");
   close_modal_by_ID('disconnected_modal');
+  socket.emit('login', {username: "moreillon", password: "poketenashi"})
+});
+
+socket.on('authenticated', function() {
+  console.log("[WS] authenticated");
+  socket.emit('get_all_devices_from_back_end', {});
 });
 
 socket.on('disconnect', function(){

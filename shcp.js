@@ -1,18 +1,22 @@
 // Depenedencies
-var path = require('path');
-var express = require('express');
-var expressSession = require('express-session')
-var bodyParser = require("body-parser");
-var http = require('http');
-var mqtt = require('mqtt');
-var socketio = require('socket.io');
-var MongoDB = require('mongodb');
-var httpProxy = require('http-proxy');
+const path = require('path');
+const express = require('express');
+const cookieSession = require('cookie-session')
+const history = require('connect-history-api-fallback');
+const bodyParser = require("body-parser");
+const http = require('http');
+const mqtt = require('mqtt');
+const socketio = require('socket.io');
+const MongoDB = require('mongodb');
+const httpProxy = require('http-proxy'); // For camera
 
 // Custom modules
+const credentials = require('../common/credentials');
 var db_config = require ('./config/db_config');
 var misc_config = require('./config/misc_config');
-const credentials = require('../common/credentials');
+
+// TODO: SUBMODULE THIS
+var socketio_authentication = require('./submodules/socketio_authentication_middleware/socketio_authentication_middleware');
 
 // MongoDB objects
 var MongoClient = MongoDB.MongoClient;
@@ -28,13 +32,10 @@ var http_server = http.Server(app);
 var io = socketio(http_server);
 
 // Connect to MQTT
-var mqtt_client  = mqtt.connect(
-  'mqtt://192.168.1.2',
-  {
-    username: credentials.mqtt_username,
-    password: credentials.mqtt_password
-  }
-);
+var mqtt_client  = mqtt.connect( 'mqtt://192.168.1.2', {
+  username: credentials.mqtt_username,
+  password: credentials.mqtt_password
+});
 
 // proxy for camera
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
@@ -43,8 +44,11 @@ var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 // Helper functions
 ////////////
 
-// Function to check if user is logged in (has a user ID session)
+// Middleware to check if user is logged in (has a user ID session)
+// TODO: Externalize this
 function checkAuth(req, res, next) {
+  next();
+
   if (!req.session.user_id) {
     res.redirect('/login');
   }
@@ -89,19 +93,18 @@ function mqtt_subscribe_all() {
 // EXPRESS //
 /////////////
 
-app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(expressSession({
-    secret: credentials.session_secret,
-    resave: false,
-    saveUninitialized: true
-}));
+app.use(history());
+app.use(express.static(path.join(__dirname, 'dist')));
+
+//app.set('view engine', 'ejs');
+//app.set('views', path.join(__dirname, 'views'));
+//app.use(express.static(path.join(__dirname, 'public')));
+
 
 
 // Express routing
+/*
 app.get('/login', function(req, res) {
   res.render('login.ejs');
 });
@@ -127,18 +130,7 @@ app.get('/logout', function (req, res) {
 app.get('/',checkAuth, function(req, res) {
   res.render('index');
 });
-
-app.get('/dump', function(req, res) {
-  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db(db_config.db_name);
-    dbo.collection(db_config.collection_name).find({}).toArray(function(err, result) {
-      if (err) throw err;
-      db.close();
-      res.render('dump.ejs', {devices: result});
-    });
-  });
-});
+*/
 
 app.get('/camera', checkAuthNoLogin, function(req, res) {
 
@@ -194,23 +186,28 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
 ////////////////
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
+  console.log('[WS] User connected');
 
-  console.log('[WS] User connected, sending the devices info');
-
-  // Fetch and send all devices to client
-  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db(db_config.db_name);
-    dbo.collection(db_config.collection_name).find({}).toArray(function(err, find_result){
-      if (err) throw err;
-      db.close();
-      io.sockets.emit('delete_and_create_all_in_front_end', find_result);
-    });
-  });
+  //socket.use(socketio_authentication.socketio_middleware(socket))
 
   socket.on('disconnect', function(){
     console.log('[WS] user disconnected');
   });
+
+  socket.on('get_all_devices_from_back_end', function(){
+    console.log("[WS] get_all_devices_from_back_end");
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db(db_config.db_name);
+      dbo.collection(db_config.collection_name).find({}).toArray(function(err, find_result){
+        if (err) throw err;
+        db.close();
+        io.sockets.emit('delete_and_create_all_in_front_end', find_result);
+      });
+    });
+  })
+
+
 
   // Respond to WS messages
   socket.on("add_one_device_in_back_end", function(device) {
@@ -319,7 +316,6 @@ io.sockets.on('connection', function (socket) {
 
 mqtt_client.on('connect', function () {
   // Callback when MQTT is connected
-
   console.log("[MQTT] connected");
 });
 
@@ -341,6 +337,8 @@ mqtt_client.on('message', function (status_topic, payload) {
       dbo.collection(db_config.collection_name).find(query).toArray(function(err, find_result){
         if (err) throw err;
         db.close();
+
+        // This broadcast to all clients
         io.sockets.emit('add_or_update_some_in_front_end', find_result);
       });
     });

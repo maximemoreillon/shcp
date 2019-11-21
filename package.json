@@ -22,11 +22,13 @@
   },
   "homepage": "https://github.com/maximemoreillon/shcp#readme",
   "dependencies": {
-    "ejs": "^2.6.1",
-    "express": "^4.17.0",
-    "express-session": "^1.16.1",
+    "connect-history-api-fallback": "^1.6.0",
+    "cookie-session": "^1.3.3",
+    "ejs": "^2.6.2",
+    "express": "^4.17.1",
+    "express-session": "^1.16.2",
     "http-proxy": "^1.17.0",
-    "mongodb": "^3.2.5",
+    "mongodb": "^3.2.7",
     "mqtt": "^2.18.8",
     "request": "^2.88.0",
     "socket.io": "^2.2.0"
