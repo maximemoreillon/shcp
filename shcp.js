@@ -97,40 +97,6 @@ app.use(bodyParser.json());
 app.use(history());
 app.use(express.static(path.join(__dirname, 'dist')));
 
-//app.set('view engine', 'ejs');
-//app.set('views', path.join(__dirname, 'views'));
-//app.use(express.static(path.join(__dirname, 'public')));
-
-
-
-// Express routing
-/*
-app.get('/login', function(req, res) {
-  res.render('login.ejs');
-});
-
-app.post('/login', function (req, res) {
-  var post = req.body;
-  if (post.user === credentials.app_username && post.password === credentials.app_password) {
-    // FOR NOW ONLY ONE USER
-    req.session.user_id = 1;
-    res.redirect('/');
-  }
-  else {
-    // Improve this!
-    res.render('login.ejs', {error_message: "Wrong username/password"} );
-  }
-});
-
-app.get('/logout', function (req, res) {
-  delete req.session.user_id;
-  res.redirect('/');
-});
-
-app.get('/',checkAuth, function(req, res) {
-  res.render('index');
-});
-*/
 
 app.get('/camera', checkAuthNoLogin, function(req, res) {
 
@@ -212,13 +178,16 @@ io.sockets.on('connection', function (socket) {
   // Respond to WS messages
   socket.on("add_one_device_in_back_end", function(device) {
 
+
     console.log("[WS] add_one_device_in_back_end");
+
+    console.log(device)
 
     MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
-      // we'll let the db provide the id
+      // let the DB provide the ID
       delete device._id;
 
       dbo.collection(db_config.collection_name).insertOne(device, function(err, result) {
