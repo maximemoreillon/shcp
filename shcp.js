@@ -9,6 +9,7 @@ const mqtt = require('mqtt');
 const socketio = require('socket.io');
 const MongoDB = require('mongodb');
 const httpProxy = require('http-proxy'); // For camera
+const jwt = require('jsonwebtoken');
 
 // Custom modules
 const credentials = require('../common/credentials');
@@ -150,11 +151,57 @@ app.get('/camera', checkAuthNoLogin, function(req, res) {
 ////////////////
 // Websockets //
 ////////////////
+
+function token_verification(token, callback){
+  console.log("[Auth] token_verification")
+
+  jwt.verify(token, credentials.jwt.secret, function(err, decoded) {
+    // Just check if JWT can be decoded, i.e. secret is valid
+    if(decoded) {
+      console.log("[Auth] JWT is valid")
+      callback(err, {
+        username: decoded.username,
+      })
+    }
+    else {
+      console.log("[Auth] JWT is not valid")
+      callback(err, false)
+    }
+  });
+}
+
+
+
+function credentials_verification(received_credentials, callback){
+  console.log("[Auth] Credentials verification")
+
+  console.log(received_credentials)
+  console.log(credentials.app_username)
+  console.log(credentials.app_password)
+
+  if(received_credentials.username === credentials.app_username && received_credentials.password === credentials.app_password ){
+    console.log("[Auth] Credentials are valid")
+    callback(false, {
+      jwt: jwt.sign({
+        username: credentials.username
+      }, credentials.jwt.secret)
+    })
+  }
+  else {
+    console.log("[Auth] Credentials are not valid")
+    callback(false, false)
+  }
+}
+
+
+
 io.sockets.on('connection', function (socket) {
   // Deals with Websocket connections
   console.log('[WS] User connected');
 
-  //socket.use(socketio_authentication.socketio_middleware(socket))
+  // Authentication middleware
+  socket.use(socketio_authentication.authentication_middleware(socket, token_verification, credentials_verification));
+
 
   socket.on('disconnect', function(){
     console.log('[WS] user disconnected');
