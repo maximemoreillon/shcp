@@ -10,6 +10,7 @@ const socketio = require('socket.io');
 const MongoDB = require('mongodb');
 const httpProxy = require('http-proxy'); // For camera
 const jwt = require('jsonwebtoken');
+const cors = require('cors')
 
 // Custom modules
 const credentials = require('../common/credentials');
@@ -33,7 +34,7 @@ var http_server = http.Server(app);
 var io = socketio(http_server);
 
 // Connect to MQTT
-var mqtt_client  = mqtt.connect( 'mqtt://192.168.1.2', {
+var mqtt_client  = mqtt.connect( 'mqtt://localhost', {
   username: credentials.mqtt_username,
   password: credentials.mqtt_password
 });
@@ -41,31 +42,7 @@ var mqtt_client  = mqtt.connect( 'mqtt://192.168.1.2', {
 // proxy for camera
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 
-/////////////
-// Helper functions
-////////////
 
-// Middleware to check if user is logged in (has a user ID session)
-// TODO: Externalize this
-function checkAuth(req, res, next) {
-  next();
-
-  if (!req.session.user_id) {
-    res.redirect('/login');
-  }
-  else {
-    next();
-  }
-}
-
-function checkAuthNoLogin(req, res, next) {
-  if (!req.session.user_id) {
-    res.sendStatus(401);
-  }
-  else {
-    next();
-  }
-}
 
 function mqtt_subscribe_all() {
 
@@ -95,51 +72,63 @@ function mqtt_subscribe_all() {
 /////////////
 
 app.use(bodyParser.json());
-app.use(history());
+app.use(history({
+  // Ignore route /camera
+  rewrites: [
+    { from: '/camera', to: '/camera'}
+  ]
+}));
 app.use(express.static(path.join(__dirname, 'dist')));
+app.use(cors())
 
-
-app.get('/camera', checkAuthNoLogin, function(req, res) {
-
+app.get('/camera', function(req, res) {
   // API to proxy camera stream to the front end
-  if(typeof req.query._id !== 'undefined'){
 
+  console.log('[HTTP] Request for camera')
 
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db(db_config.db_name);
+  if('_id' in req.query && 'jwt' in req.query){
+    // Request is valid
 
-      var query = {_id: ObjectID(req.query._id)};
+    jwt.verify(req.query.jwt, credentials.jwt.secret, function(err, decoded) {
+      // Just check if JWT can be decoded, i.e. secret is valid
+      if(decoded) {
 
-      dbo.collection(db_config.collection_name).findOne(query, function(err, result) {
-        if (err) throw err;
-        db.close();
+        MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+          if (err) throw err;
+          var dbo = db.db(db_config.db_name);
 
-        console.log(result.stream_url)
-        // If the DB query was successful, create proxy to camera
-        if(typeof result.stream_url !== 'undefined'){
+          dbo.collection(db_config.collection_name).findOne({_id: ObjectID(req.query._id)}, (err, result) => {
+            if (err) throw err;
+            db.close();
 
-          console.log("[Camera] Currently streaming " + result.stream_url);
+            // If the DB query was successful, create proxy to camera
+            if(typeof result.stream_url !== 'undefined'){
 
-          // Removing some headers because some cameras (ESP-32 cam) don't support large headers
-          delete req.headers.cookie;
-          delete req.headers.via;
-          delete req.headers.referer;
+              console.log("[Camera] Currently streaming " + result.stream_url);
 
-          cameraProxy.web(req, res, {target: result.stream_url}, function(proxy_error) {
-            if(proxy_error) console.log(proxy_error)
-          });
+              // Removing some headers because some cameras (ESP-32 cam) don't support large headers
+              delete req.headers.cookie;
+              delete req.headers.via;
+              delete req.headers.referer;
 
-        }
-        else {
-          console.log("[Camera] Camera not found in DB");
-        }
-
-      });
+              cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
+                if(proxy_error) console.log(proxy_error)
+              });
+            }
+          }); // End of findOne
+        }); // End of MongoClient.connect
+      }
+      else {
+        // JWT decoding failed
+        console.log('[Camera] JWT verification failed')
+        res.sendStatus(401);
+      }
     });
   }
   else {
-    res.sendStatus(404);
+    // Request is not valid
+    console.log('[Camera] Request is missing some content')
+    res.sendStatus(400);
   }
 
 });
@@ -174,10 +163,6 @@ function token_verification(token, callback){
 
 function credentials_verification(received_credentials, callback){
   console.log("[Auth] Credentials verification")
-
-  console.log(received_credentials)
-  console.log(credentials.app_username)
-  console.log(credentials.app_password)
 
   if(received_credentials.username === credentials.app_username && received_credentials.password === credentials.app_password ){
     console.log("[Auth] Credentials are valid")
