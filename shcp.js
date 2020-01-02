@@ -39,7 +39,7 @@ var mqtt_client  = mqtt.connect( 'mqtt://localhost', {
   password: credentials.mqtt_password
 });
 
-// proxy for camera
+// proxy for cameras
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 
 
@@ -81,19 +81,42 @@ app.use(history({
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(cors())
 
-app.get('/camera', function(req, res) {
+app.post('/floorplan_upload',  (req, res) => {
+
+  // TODO: authenticate using JWT
+  var form = new formidable.IncomingForm();
+  form.parse(req, (err, fields, files) => {
+    if (err) throw err;
+
+    if('image' in files){
+      var oldpath = files.image.path;
+      var new_file_name = uuidv1() + path.extname(files.image.name)
+      var newpath = './public/floorplan/' + new_file_name;
+      fs.rename(oldpath, newpath, (err) => {
+        if (err) throw err;
+        res.send(new_file_name)
+      });
+    }
+    else {
+      res.status(503).send('Image not found in files')
+    }
+
+  });
+});
+
+app.get('/camera', (req, res) => {
   // API to proxy camera stream to the front end
 
-  console.log('[HTTP] Request for camera')
+  console.log('[Express] Request for camera')
 
   if('_id' in req.query && 'jwt' in req.query){
     // Request is valid
 
-    jwt.verify(req.query.jwt, credentials.jwt.secret, function(err, decoded) {
+    jwt.verify(req.query.jwt, credentials.jwt.secret, (err, decoded) => {
       // Just check if JWT can be decoded, i.e. secret is valid
       if(decoded) {
 
-        MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+        MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
           if (err) throw err;
           var dbo = db.db(db_config.db_name);
 
@@ -213,8 +236,6 @@ io.sockets.on('connection', function (socket) {
 
     console.log("[WS] add_one_device_in_back_end");
 
-    console.log(device)
-
     MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
@@ -230,9 +251,9 @@ io.sockets.on('connection', function (socket) {
         io.emit('add_or_update_some_in_front_end', result.ops);
 
         // Even if only one device is added, result.ops is still an array
-        for(index in result.ops){
+        for(let index of result.ops){
           //Subscribe to all new topics if provided
-          if(typeof result.ops[index].status_topic !== 'undefined' && result.ops[index].status_topic != "") {
+          if('status_topic' in result.ops[index] && result.ops[index].status_topic != "") {
             console.log(`[MQTT] subscribing to ${result.ops[index].status_topic}`);
             mqtt_client.subscribe(result.ops[index].status_topic);
           }
@@ -259,7 +280,7 @@ io.sockets.on('connection', function (socket) {
         // Update front end
         io.emit('delete_some_in_front_end', [device]);
 
-        // TODO deal with MQTT subscribtions
+        // TODO deletr MQTT subscriptions if not necessary anymore
 
       });
     });
@@ -357,5 +378,5 @@ mqtt_subscribe_all();
 
 // Run the server
 http_server.listen(misc_config.app_port, function(){
-  console.log(`[HTTP] listening on port ${misc_config.app_port}`);
+  console.log(`[Express] listening on port ${misc_config.app_port}`);
 });

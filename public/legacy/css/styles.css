@@ -1,0 +1,192 @@
+:root {
+  --primary_color: #535353;
+  --accent_color: #ce0000;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+	margin: 0px;
+
+	/* visuals */
+	background: white;
+
+	/* text */
+	font-family: Verdana, Geneva, sans-serif;
+
+}
+
+#app{
+  /* app is just a substitute for body */
+
+  min-height: 100vh;
+
+  /* Centering content with flex */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main, .main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.main > * {
+  margin: 10px 0;
+}
+
+.floorplan_wrapper {
+
+  /* needs to be relative for device positioning */
+  position: relative;
+
+  width: 90vw;
+  max-width: 60vh;
+}
+
+
+
+.floorplan {
+  /* This is an <img> */
+  width: 100%;
+}
+
+
+
+.device_wrapper {
+
+}
+
+.device_icon_wrapper{
+
+  /* ensure above rest */
+  z-index: 5;
+
+  /* positioning */
+  position: absolute;
+
+  /* Position by center and not by corner */
+  transform: translate(-50%,-50%);
+
+  /* Misc visual */
+  cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.device_icon {
+
+  /* default color */
+  color: #535353;
+
+  font-size: 6vmin;
+  transition: color 0.5s;
+
+}
+
+.on {
+  color: var(--accent_color);
+}
+
+.icon_badge{
+  position: absolute;
+  top: 20%;
+  left: 80%;
+
+  transform: translate(-50%,-50%);
+
+  border: 0.3vmin solid white;
+  border-radius: 50%;
+
+  width: 3vmin;
+  height: 3vmin;
+
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 2vmin;
+
+}
+
+.warning_badge {
+  background-color: var(--accent_color);
+}
+
+.edit_badge {
+  background-color: var(--primary_color);
+}
+
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+
+
+.fade-enter, .fade-leave-to{
+  opacity: 0;
+}
+
+
+.edit_form {
+  position: absolute;
+}
+
+
+.properties_container {
+  width: 100%;
+}
+
+.properties_container table{
+  width: 100%;
+}
+
+.properties_container td {
+  padding: 0 5px;
+}
+
+.properties_container select, .properties_container input {
+  width: 100%;
+}
+
+.properties_container .buttons_container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.properties_container .buttons_container > * {
+  margin: 5px;
+}
+
+.camera_image_wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.camera_image {
+  max-width: 100%;
+}
+
+.gauge_container{
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gauge {
+  position: absolute;
+  width: 50vw;
+}
