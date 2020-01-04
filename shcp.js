@@ -11,6 +11,8 @@ const MongoDB = require('mongodb');
 const httpProxy = require('http-proxy'); // For camera
 const jwt = require('jsonwebtoken');
 const cors = require('cors')
+const formidable = require('formidable');
+const fs = require('fs');
 
 // Custom modules
 const credentials = require('../common/credentials');
@@ -83,6 +85,8 @@ app.use(cors())
 
 app.post('/floorplan_upload',  (req, res) => {
 
+  console.log("FLOORPLAN")
+
   // TODO: authenticate using JWT
   var form = new formidable.IncomingForm();
   form.parse(req, (err, fields, files) => {
@@ -90,7 +94,7 @@ app.post('/floorplan_upload',  (req, res) => {
 
     if('image' in files){
       var oldpath = files.image.path;
-      var new_file_name = uuidv1() + path.extname(files.image.name)
+      var new_file_name = 'floorplan' + path.extname(files.image.name)
       var newpath = './public/floorplan/' + new_file_name;
       fs.rename(oldpath, newpath, (err) => {
         if (err) throw err;
@@ -231,19 +235,19 @@ io.sockets.on('connection', function (socket) {
 
 
   // Respond to WS messages
-  socket.on("add_one_device_in_back_end", function(device) {
+  socket.on("add_one_device_in_back_end", (device) => {
 
 
     console.log("[WS] add_one_device_in_back_end");
 
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
       // let the DB provide the ID
       delete device._id;
 
-      dbo.collection(db_config.collection_name).insertOne(device, function(err, result) {
+      dbo.collection(db_config.collection_name).insertOne(device, (err, result) => {
         if (err) throw err;
         db.close();
 
@@ -251,11 +255,13 @@ io.sockets.on('connection', function (socket) {
         io.emit('add_or_update_some_in_front_end', result.ops);
 
         // Even if only one device is added, result.ops is still an array
-        for(let index of result.ops){
+        for(let op of result.ops){
           //Subscribe to all new topics if provided
-          if('status_topic' in result.ops[index] && result.ops[index].status_topic != "") {
-            console.log(`[MQTT] subscribing to ${result.ops[index].status_topic}`);
-            mqtt_client.subscribe(result.ops[index].status_topic);
+          if('status_topic' in op) {
+            if( op.status_topic != "") {
+              console.log(`[MQTT] subscribing to ${op.status_topic}`);
+              mqtt_client.subscribe(op.status_topic);
+            }
           }
         }
       });
@@ -344,19 +350,25 @@ mqtt_client.on('connect', function () {
 
 mqtt_client.on('message', function (status_topic, payload) {
   // Callback for MQTT messages
+  // Used to update the state of devices in the back and front end
 
   console.log("[MQTT] message arrived on " + status_topic + ": " + payload);
 
-  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
     if (err) throw err;
     var dbo = db.db(db_config.db_name);
 
     var query = { status_topic: String(status_topic) };
     var action = { $set: {state: String(payload)} };
 
-    dbo.collection(db_config.collection_name).updateMany( query, action, function(err, update_result) {
+    // TODO: TRY USING FINDANDMOFIY
+
+    // Update DB
+    dbo.collection(db_config.collection_name).updateMany( query, action, (err, update_result) => {
       if (err) throw err;
-      dbo.collection(db_config.collection_name).find(query).toArray(function(err, find_result){
+
+      // Update front end
+      dbo.collection(db_config.collection_name).find(query).toArray((err, find_result) =>{
         if (err) throw err;
         db.close();
 
