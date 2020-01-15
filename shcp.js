@@ -1,7 +1,7 @@
 // Depenedencies
 const path = require('path');
 const express = require('express');
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session') // NEEDED?
 const history = require('connect-history-api-fallback');
 const bodyParser = require("body-parser");
 const http = require('http');
@@ -10,9 +10,9 @@ const socketio = require('socket.io');
 const MongoDB = require('mongodb');
 const httpProxy = require('http-proxy'); // For camera
 const jwt = require('jsonwebtoken');
-const cors = require('cors')
-const formidable = require('formidable');
-const fs = require('fs');
+const cors = require('cors');
+const formidable = require('formidable'); // NEEDED?
+const fs = require('fs'); // Needed to serve floorplan
 
 // Custom modules
 const credentials = require('../common/credentials');
@@ -77,28 +77,32 @@ app.use(bodyParser.json());
 app.use(history({
   // Ignore route /camera
   rewrites: [
-    { from: '/camera', to: '/camera'}
+    { from: '/camera', to: '/camera'},
+    { from: '/floorplan', to: '/floorplan'},
   ]
 }));
 app.use(express.static(path.join(__dirname, 'dist')));
+
 app.use(cors())
+
+app.get('/floorplan',(req, res) => {
+  res.sendFile(path.join(__dirname, 'floorplan/floorplan'));
+});
 
 app.post('/floorplan_upload',  (req, res) => {
 
-  console.log("FLOORPLAN")
-
   // TODO: authenticate using JWT
+
   var form = new formidable.IncomingForm();
   form.parse(req, (err, fields, files) => {
     if (err) throw err;
 
     if('image' in files){
       var oldpath = files.image.path;
-      var new_file_name = 'floorplan' + path.extname(files.image.name)
-      var newpath = './public/floorplan/' + new_file_name;
+      var newpath = './floorplan/floorplan';
       fs.rename(oldpath, newpath, (err) => {
         if (err) throw err;
-        res.send(new_file_name)
+        res.send('OK')
       });
     }
     else {
