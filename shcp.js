@@ -1,7 +1,6 @@
 // Depenedencies
 const path = require('path');
 const express = require('express');
-const cookieSession = require('cookie-session') // NEEDED?
 const history = require('connect-history-api-fallback');
 const bodyParser = require("body-parser");
 const http = require('http');
@@ -11,16 +10,15 @@ const MongoDB = require('mongodb');
 const httpProxy = require('http-proxy'); // For camera
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const formidable = require('formidable'); // NEEDED?
-const fs = require('fs'); // Needed to serve floorplan
+const formidable = require('formidable'); // Needed fot foorplan upload
+const fs = require('fs'); // Needed for upload and serving of floorplan
+const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware'); // NOT USED YET
 
 // Custom modules
 const credentials = require('../common/credentials');
-var db_config = require ('./config/db_config');
-var misc_config = require('./config/misc_config');
+const db_config = require ('./config/db_config');
 
-// TODO: SUBMODULE THIS
-var socketio_authentication = require('./submodules/socketio_authentication_middleware/socketio_authentication_middleware');
+const PORT = 8080;
 
 // MongoDB objects
 var MongoClient = MongoDB.MongoClient;
@@ -44,38 +42,14 @@ var mqtt_client  = mqtt.connect( 'mqtt://localhost', {
 // proxy for cameras
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 
-
-
-function mqtt_subscribe_all() {
-
-  console.log(`[MQTT] Subscribing to all topics`);
-  // Subscribe to all topics
-  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db(db_config.db_name);
-    dbo.collection(db_config.collection_name).find({}).toArray(function(err, result) {
-      if (err) throw err;
-      db.close();
-
-      // Subscribe to all topics
-      for(index in result) {
-        if(typeof result[index].status_topic !== "undefined" && result[index].status_topic !== ""){
-          console.log(`[MQTT] Subscribing to ${result[index].status_topic}`);
-          mqtt_client.subscribe(result[index].status_topic);
-        }
-      }
-    });
-  });
-}
-
-
 /////////////
 // EXPRESS //
 /////////////
 
 app.use(bodyParser.json());
+
 app.use(history({
-  // Ignore route /camera
+  // Ignore routes for connect-history-api-fallback
   rewrites: [
     { from: '/camera', to: '/camera'},
     { from: '/floorplan', to: '/floorplan'},
@@ -172,63 +146,64 @@ app.get('/camera', (req, res) => {
 // Websockets //
 ////////////////
 
-function token_verification(token, callback){
-  console.log("[Auth] token_verification")
+function authentication_function(payload, callback){
 
-  jwt.verify(token, credentials.jwt.secret, function(err, decoded) {
-    // Just check if JWT can be decoded, i.e. secret is valid
-    if(decoded) {
-      console.log("[Auth] JWT is valid")
-      callback(err, {
-        username: decoded.username,
+  console.log("[Auth] authentication_function")
+
+  if('jwt' in payload){
+    console.log('user is trying to authenticate using JWT')
+    jwt.verify(payload.jwt, credentials.jwt.secret, (err, decoded) => {
+      // Just check if JWT can be decoded, i.e. secret is valid
+      if(decoded) {
+        console.log("[Auth] JWT is valid")
+        callback(err, {
+          username: decoded.username,
+        })
+      }
+      else {
+        console.log("[Auth] JWT is not valid")
+        callback(err, false)
+      }
+    });
+  }
+
+  else if('credentials' in payload){
+    console.log('user is trying to authenticate using credentials')
+    if(payload.credentials.username === credentials.app_username
+      && payload.credentials.password === credentials.app_password ){
+      console.log("[Auth] Credentials are valid")
+      callback(false, {
+        jwt: jwt.sign({
+          username: credentials.username
+        }, credentials.jwt.secret)
       })
     }
     else {
-      console.log("[Auth] JWT is not valid")
-      callback(err, false)
+      console.log("[Auth] Credentials are not valid")
+      callback(false, false)
     }
-  });
-}
-
-
-
-function credentials_verification(received_credentials, callback){
-  console.log("[Auth] Credentials verification")
-
-  if(received_credentials.username === credentials.app_username && received_credentials.password === credentials.app_password ){
-    console.log("[Auth] Credentials are valid")
-    callback(false, {
-      jwt: jwt.sign({
-        username: credentials.username
-      }, credentials.jwt.secret)
-    })
-  }
-  else {
-    console.log("[Auth] Credentials are not valid")
-    callback(false, false)
   }
 }
 
 
 
-io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', (socket) => {
   // Deals with Websocket connections
   console.log('[WS] User connected');
 
-  // Authentication middleware
-  socket.use(socketio_authentication.authentication_middleware(socket, token_verification, credentials_verification));
+  socket.use(socketio_authentication_middleware(socket, authentication_function));
 
-
-  socket.on('disconnect', function(){
+  socket.on('disconnect', () => {
     console.log('[WS] user disconnected');
   });
 
-  socket.on('get_all_devices_from_back_end', function(){
+  socket.on('get_all_devices_from_back_end', () => {
     console.log("[WS] get_all_devices_from_back_end");
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
       if (err) throw err;
-      var dbo = db.db(db_config.db_name);
-      dbo.collection(db_config.collection_name).find({}).toArray(function(err, find_result){
+      db.db(db_config.db_name)
+      .collection(db_config.collection_name)
+      .find({}).toArray((err, find_result) =>{
         if (err) throw err;
         db.close();
         io.sockets.emit('delete_and_create_all_in_front_end', find_result);
@@ -240,7 +215,6 @@ io.sockets.on('connection', function (socket) {
 
   // Respond to WS messages
   socket.on("add_one_device_in_back_end", (device) => {
-
 
     console.log("[WS] add_one_device_in_back_end");
 
@@ -274,36 +248,54 @@ io.sockets.on('connection', function (socket) {
   });
 
 
-  socket.on("delete_one_device_in_back_end", function(device) {
+  socket.on("delete_one_device_in_back_end", (device) => {
     console.log("[WS] delete_one_device_in_back_end");
 
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
       if (err) throw err;
-      var dbo = db.db(db_config.db_name);
 
       var query = { _id: ObjectID(device._id)};
 
-      dbo.collection(db_config.collection_name).deleteOne( query , function(err, result) {
+      db.db(db_config.db_name)
+      .collection(db_config.collection_name)
+      .deleteOne( query , (err, result) => {
         if (err) throw err;
-        db.close();
 
         // Update front end
         io.emit('delete_some_in_front_end', [device]);
 
-        // TODO deletr MQTT subscriptions if not necessary anymore
+        if('status_topic' in device){
+          console.log(`[MQTT] Device had a subscribed topic, checking if unsubscribing necessary`)
+          db.db(db_config.db_name)
+          .collection(db_config.collection_name).find({})
+          .toArray((err, result) => {
+            if (err) throw err;
+            db.close();
+
+            let device_with_same_status_topic = result.find(e => e.status_topic === device.status_topic)
+            if(!device_with_same_status_topic){
+              console.log(`[MQTT] Unsubscribing from topic ${device.status_topic}`)
+            }
+            else {
+              console.log(`[MQTT] topic ${device.status_topic} is used by another device, keep subscribtion`)
+            }
+          })
+        }
+        else {
+          db.close();
+        }
 
       });
     });
 
-
   });
 
-  socket.on("edit_one_device_in_back_end", function(device) {
+  socket.on("edit_one_device_in_back_end", (device) => {
 
     console.log("[WS] edit_one_device_in_back_end");
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, function(err, db) {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
       if (err) throw err;
-      var dbo = db.db(db_config.db_name);
+
 
       // Look fore device by ID
       var query = { _id: ObjectID(device._id) };
@@ -317,12 +309,15 @@ io.sockets.on('connection', function (socket) {
       var options = { returnOriginal: false };
 
       // Using replace to get rid of previous device propertiess
-      dbo.collection(db_config.collection_name).findOneAndReplace(query, action, options, function(err, result) {
+      db.db(db_config.db_name)
+      .collection(db_config.collection_name)
+      .findOneAndReplace(query, action, options, (err, result) => {
         if (err) throw err;
         db.close();
         io.sockets.emit('add_or_update_some_in_front_end', [result.value]);
 
         // Deal with MQTT subscriptions
+        // SOMETHING FISHY HERE
         if(typeof result.value.status_topic !== 'undefined' && result.value.status_topic != "") {
           console.log(`[MQTT] subscribing to ${result.value.status_topic}`);
           mqtt_client.subscribe(result.value.status_topic);
@@ -346,17 +341,39 @@ io.sockets.on('connection', function (socket) {
 // MQTT //
 //////////
 
-mqtt_client.on('connect', function () {
+function mqtt_subscribe_all() {
+  console.log(`[MQTT] Subscribing to all topics`);
+  // Subscribe to all topics
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+    if (err) throw err;
+    db.db(db_config.db_name)
+    .collection(db_config.collection_name).find({})
+    .toArray((err, result) => {
+      if (err) throw err;
+      db.close();
+
+      // Subscribe to all topics
+      for(index in result) {
+        if(typeof result[index].status_topic !== "undefined" && result[index].status_topic !== ""){
+          console.log(`[MQTT] Subscribing to ${result[index].status_topic}`);
+          mqtt_client.subscribe(result[index].status_topic);
+        }
+      }
+    });
+  });
+}
+
+mqtt_client.on('connect', () => {
   // Callback when MQTT is connected
   console.log("[MQTT] connected");
 });
 
 
-mqtt_client.on('message', function (status_topic, payload) {
+mqtt_client.on('message', (status_topic, payload) => {
   // Callback for MQTT messages
   // Used to update the state of devices in the back and front end
 
-  console.log("[MQTT] message arrived on " + status_topic + ": " + payload);
+  //console.log("[MQTT] message arrived on " + status_topic + ": " + payload);
 
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
     if (err) throw err;
@@ -393,6 +410,6 @@ mqtt_client.on('message', function (status_topic, payload) {
 mqtt_subscribe_all();
 
 // Run the server
-http_server.listen(misc_config.app_port, function(){
-  console.log(`[Express] listening on port ${misc_config.app_port}`);
+http_server.listen(PORT, () => {
+  console.log(`[Express] listening on port ${PORT}`);
 });
