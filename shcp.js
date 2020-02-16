@@ -18,7 +18,7 @@ const socketio_authentication_middleware = require('@moreillon/socketio_authenti
 const credentials = require('../common/credentials');
 const db_config = require ('./config/db_config');
 
-const PORT = 8080;
+const PORT = 7070;
 
 // MongoDB objects
 var MongoClient = MongoDB.MongoClient;
