@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shcp
+  template:
+    metadata:
+      labels:
+        app: shcp
+    spec:
+      containers:
+      - name: shcp
+        image: 192.168.1.2:5000/shcp
+        ports:
+        - containerPort: 7070
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: shcp
+  name: shcp
+spec:
+  ports:
+  - port: 7070
+    nodePort: 30070
+  selector:
+    app: shcp
+  type: LoadBalancer
