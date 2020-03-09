@@ -10,15 +10,20 @@ const MongoDB = require('mongodb');
 const httpProxy = require('http-proxy'); // For camera
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const formidable = require('formidable'); // Needed fot foorplan upload
+const formidable = require('formidable'); // Needed for foorplan upload
 const fs = require('fs'); // Needed for upload and serving of floorplan
-const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware'); // NOT USED YET
+const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware')
 
-// Custom modules
-const credentials = require('../common/credentials');
-const db_config = require ('./config/db_config');
 
 const PORT = 7070;
+const secrets = require('./secrets');
+
+const db_config = {
+  db_url : secrets.mongodb_url,
+  db_name : "shcp",
+  collection_name : "devices",
+}
+
 
 // MongoDB objects
 var MongoClient = MongoDB.MongoClient;
@@ -34,9 +39,9 @@ var http_server = http.Server(app);
 var io = socketio(http_server);
 
 // Connect to MQTT
-var mqtt_client  = mqtt.connect( 'mqtt://localhost', {
-  username: credentials.mqtt_username,
-  password: credentials.mqtt_password
+var mqtt_client  = mqtt.connect( secrets.MQTT.broker_url, {
+  username: secrets.MQTT.username,
+  password: secrets.MQTT.password
 });
 
 // proxy for cameras
@@ -91,50 +96,50 @@ app.get('/camera', (req, res) => {
 
   console.log('[Express] Request for camera')
 
-  if('_id' in req.query && 'jwt' in req.query){
-    // Request is valid
+  // Check if the request contains enough information
+  if(!req.query._id || !req.query.jwt) return res.sendStatus(400).send('Missing ID or JWT');
 
-    jwt.verify(req.query.jwt, credentials.jwt.secret, (err, decoded) => {
-      // Just check if JWT can be decoded, i.e. secret is valid
-      if(decoded) {
+  // Verify token
+  // TODO: Send token in authorization header
+  jwt.verify(req.query.jwt, secrets.jwt_secret, (err, decoded) => {
 
-        MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
-          if (err) throw err;
-          var dbo = db.db(db_config.db_name);
+    if(err) return res.sendStatus(401).send("Invalid JWT")
 
-          dbo.collection(db_config.collection_name).findOne({_id: ObjectID(req.query._id)}, (err, result) => {
-            if (err) throw err;
-            db.close();
+    if(decoded) {
 
-            // If the DB query was successful, create proxy to camera
-            if(typeof result.stream_url !== 'undefined'){
+      MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
+        if (err) return res.sendStatus(500).send("Error connecting to the DB")
+        db.db(db_config.db_name)
+        .collection(db_config.collection_name)
+        .findOne({_id: ObjectID(req.query._id)}, (err, result) => {
+          if (err) return res.sendStatus(500).send("Error getting camera from the DB")
+          db.close();
 
-              console.log("[Camera] Currently streaming " + result.stream_url);
+          // If the DB query was successful, create proxy to camera
+          if(!result.stream_url) return res.sendStatus(500).send("DB entry does not have ")
 
-              // Removing some headers because some cameras (ESP-32 cam) don't support large headers
-              delete req.headers.cookie;
-              delete req.headers.via;
-              delete req.headers.referer;
+          console.log("[Camera] Currently streaming " + result.stream_url);
 
-              cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
-                if(proxy_error) console.log(proxy_error)
-              });
+          // Removing some headers because some cameras (ESP-32 cam) don't support large headers
+          delete req.headers.cookie;
+          delete req.headers.via;
+          delete req.headers.referer;
+
+          cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
+            if(proxy_error) {
+              return res.sendStatus(500).send("Error proxying camera")
+              console.log(proxy_error)
             }
-          }); // End of findOne
-        }); // End of MongoClient.connect
-      }
-      else {
-        // JWT decoding failed
-        console.log('[Camera] JWT verification failed')
-        res.sendStatus(401);
-      }
-    });
-  }
-  else {
-    // Request is not valid
-    console.log('[Camera] Request is missing some content')
-    res.sendStatus(400);
-  }
+          });
+
+
+        }); // End of findOne
+      }); // End of MongoClient.connect
+    }
+  });
+
+
+
 
 });
 
@@ -152,30 +157,29 @@ function authentication_function(payload, callback){
 
   if('jwt' in payload){
     console.log('user is trying to authenticate using JWT')
-    jwt.verify(payload.jwt, credentials.jwt.secret, (err, decoded) => {
+    jwt.verify(payload.jwt, secrets.jwt_secret, (err, decoded) => {
       // Just check if JWT can be decoded, i.e. secret is valid
-      if(decoded) {
-        console.log("[Auth] JWT is valid")
-        callback(err, {
-          username: decoded.username,
-        })
-      }
-      else {
-        console.log("[Auth] JWT is not valid")
-        callback(err, false)
-      }
+
+      if(err) return callback(err, false)
+
+      console.log("[Auth] JWT is valid")
+      callback(err, {
+        username: decoded.username,
+      })
+
+
     });
   }
 
   else if('credentials' in payload){
     console.log('user is trying to authenticate using credentials')
-    if(payload.credentials.username === credentials.app_username
-      && payload.credentials.password === credentials.app_password ){
+    if(payload.credentials.username === secrets.app.username
+      && payload.credentials.password === secrets.app.password ){
       console.log("[Auth] Credentials are valid")
       callback(false, {
         jwt: jwt.sign({
-          username: credentials.username
-        }, credentials.jwt.secret)
+          username: secrets.app.username
+        }, secrets.jwt_secret)
       })
     }
     else {
@@ -199,7 +203,7 @@ io.sockets.on('connection', (socket) => {
 
   socket.on('get_all_devices_from_back_end', () => {
     console.log("[WS] get_all_devices_from_back_end");
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
       db.db(db_config.db_name)
       .collection(db_config.collection_name)
@@ -218,7 +222,7 @@ io.sockets.on('connection', (socket) => {
 
     console.log("[WS] add_one_device_in_back_end");
 
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
       var dbo = db.db(db_config.db_name);
 
@@ -251,7 +255,7 @@ io.sockets.on('connection', (socket) => {
   socket.on("delete_one_device_in_back_end", (device) => {
     console.log("[WS] delete_one_device_in_back_end");
 
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
 
       var query = { _id: ObjectID(device._id)};
@@ -293,7 +297,7 @@ io.sockets.on('connection', (socket) => {
   socket.on("edit_one_device_in_back_end", (device) => {
 
     console.log("[WS] edit_one_device_in_back_end");
-    MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+    MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
 
 
@@ -344,7 +348,7 @@ io.sockets.on('connection', (socket) => {
 function mqtt_subscribe_all() {
   console.log(`[MQTT] Subscribing to all topics`);
   // Subscribe to all topics
-  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
     if (err) throw err;
     db.db(db_config.db_name)
     .collection(db_config.collection_name).find({})
@@ -375,7 +379,7 @@ mqtt_client.on('message', (status_topic, payload) => {
 
   //console.log("[MQTT] message arrived on " + status_topic + ": " + payload);
 
-  MongoClient.connect(db_config.db_url, { useNewUrlParser: true }, (err, db) => {
+  MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
     if (err) throw err;
     var dbo = db.db(db_config.db_name);
 
