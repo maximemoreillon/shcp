@@ -223,12 +223,13 @@ io.sockets.on('connection', (socket) => {
 
     MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
-      var dbo = db.db(db_config.db_name);
 
       // let the DB provide the ID
       delete device._id;
 
-      dbo.collection(db_config.collection_name).insertOne(device, (err, result) => {
+      db.db(db_config.db_name)
+      .collection(db_config.collection_name)
+      .insertOne(device, (err, result) => {
         if (err) throw err;
         db.close();
 
