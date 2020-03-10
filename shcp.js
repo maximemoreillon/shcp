@@ -128,9 +128,12 @@ app.get('/camera', (req, res) => {
           delete req.headers.via;
           delete req.headers.referer;
 
+
           cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
-            if(proxy_error) return res.sendStatus(500).send(`Error proxying camera: ${proxy_error}`)
+            //if(proxy_error) return res.sendStatus(500).send(`Error proxying camera: ${proxy_error}`)
+            if(proxy_error) return console.log("[Camera] Failed to proxy camera")
           });
+
 
 
         }); // End of findOne
@@ -384,7 +387,6 @@ mqtt_client.on('message', (status_topic, payload) => {
   // Callback for MQTT messages
   // Used to update the state of devices in the back and front end
 
-  //console.log("[MQTT] message arrived on " + status_topic + ": " + payload);
 
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
     if (err) throw err;
@@ -414,12 +416,6 @@ mqtt_client.on('message', (status_topic, payload) => {
   });
 });
 
-
-
-
-///////////
-// START //
-///////////
 
 
 
