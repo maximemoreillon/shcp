@@ -114,8 +114,9 @@ app.get('/camera', (req, res) => {
         db.db(db_config.db_name)
         .collection(db_config.collection_name)
         .findOne({_id: ObjectID(req.query._id)}, (err, result) => {
-          if (err) return res.sendStatus(500).send("Error getting camera from the DB")
           db.close();
+          if (err) return res.sendStatus(500).send("Error getting camera from the DB")
+
 
           // If the DB query was successful, create proxy to camera
           if(!result.stream_url) return res.sendStatus(500).send("DB entry does not have ")
@@ -207,8 +208,9 @@ io.sockets.on('connection', (socket) => {
       db.db(db_config.db_name)
       .collection(db_config.collection_name)
       .find({}).toArray((err, find_result) =>{
-        if (err) throw err;
         db.close();
+        if (err) return console.log("[DB] Error finding devices");
+
         io.sockets.emit('delete_and_create_all_in_front_end', find_result);
       });
     });
@@ -230,8 +232,8 @@ io.sockets.on('connection', (socket) => {
       db.db(db_config.db_name)
       .collection(db_config.collection_name)
       .insertOne(device, (err, result) => {
-        if (err) throw err;
         db.close();
+        if (err) return console.log("[DB] Error inserting into DB");
 
         // Update front end
         io.emit('add_or_update_some_in_front_end', result.ops);
@@ -263,7 +265,8 @@ io.sockets.on('connection', (socket) => {
       db.db(db_config.db_name)
       .collection(db_config.collection_name)
       .deleteOne( query , (err, result) => {
-        if (err) throw err;
+        db.close();
+        if (err) return console.log("[DB] Error deleting device");
 
         // Update front end
         io.emit('delete_some_in_front_end', [device]);
@@ -316,7 +319,9 @@ io.sockets.on('connection', (socket) => {
       db.db(db_config.db_name)
       .collection(db_config.collection_name)
       .findOneAndReplace(query, action, options, (err, result) => {
-        if (err) throw err;
+        db.close();
+        if (err) return console.log("[DB] Error editing device");
+
         db.close();
         io.sockets.emit('add_or_update_some_in_front_end', [result.value]);
 
@@ -353,8 +358,8 @@ function mqtt_subscribe_all() {
     db.db(db_config.db_name)
     .collection(db_config.collection_name).find({})
     .toArray((err, result) => {
-      if (err) throw err;
       db.close();
+      if (err) return console.log("[DB] Error getting devices");
 
       // Subscribe to all topics
       for(index in result) {
@@ -392,12 +397,15 @@ mqtt_client.on('message', (status_topic, payload) => {
 
     // Update DB
     dbo.collection(db_config.collection_name).updateMany( query, action, (err, update_result) => {
-      if (err) throw err;
+      if (err) {
+        db.close();
+        return console.log("[DB] Error upating devices");
+      }
 
       // Update front end
       dbo.collection(db_config.collection_name).find(query).toArray((err, find_result) =>{
-        if (err) throw err;
         db.close();
+        if (err) return console.log("[DB] Error getting devices");
 
         // This broadcast to all clients
         io.sockets.emit('add_or_update_some_in_front_end', find_result);
