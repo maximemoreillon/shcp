@@ -130,19 +130,13 @@ app.get('/camera', (req, res) => {
 
 
           cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
-            //if(proxy_error) return res.sendStatus(500).send(`Error proxying camera: ${proxy_error}`)
             if(proxy_error) return console.log("[Camera] Failed to proxy camera")
           });
-
-
 
         }); // End of findOne
       }); // End of MongoClient.connect
     }
   });
-
-
-
 
 });
 
