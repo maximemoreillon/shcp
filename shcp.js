@@ -155,7 +155,7 @@ function authentication_function(payload, callback){
   console.log("[Auth] authentication_function")
 
   if('jwt' in payload){
-    console.log('user is trying to authenticate using JWT')
+    console.log('[Auth] user is trying to authenticate using JWT')
     jwt.verify(payload.jwt, secrets.jwt_secret, (err, decoded) => {
       // Just check if JWT can be decoded, i.e. secret is valid
 
@@ -171,7 +171,7 @@ function authentication_function(payload, callback){
   }
 
   else if('credentials' in payload){
-    console.log('user is trying to authenticate using credentials')
+    console.log('[Auth] user is trying to authenticate using credentials')
     if(payload.credentials.username === secrets.app.username
       && payload.credentials.password === secrets.app.password ){
       console.log("[Auth] Credentials are valid")
@@ -370,6 +370,8 @@ function mqtt_subscribe_all() {
 mqtt_client.on('connect', () => {
   // Callback when MQTT is connected
   console.log("[MQTT] connected");
+
+  mqtt_subscribe_all();
 });
 
 
@@ -411,7 +413,7 @@ mqtt_client.on('message', (status_topic, payload) => {
 // START //
 ///////////
 
-mqtt_subscribe_all();
+
 
 // Run the server
 http_server.listen(PORT, () => {
