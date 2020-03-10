@@ -1,3 +1,0 @@
-[submodule "submodules/socketio_authentication_middleware"]
-	path = submodules/socketio_authentication_middleware
-	url = https://github.com/maximemoreillon/socketio_authentication_middleware.git
