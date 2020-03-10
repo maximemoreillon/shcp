@@ -12,7 +12,9 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const formidable = require('formidable'); // Needed for foorplan upload
 const fs = require('fs'); // Needed for upload and serving of floorplan
+
 const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware')
+const authorization_middleware = require('@moreillon/authorization_middleware')
 
 
 const PORT = 7070;
@@ -47,6 +49,9 @@ var mqtt_client  = mqtt.connect( secrets.MQTT.broker_url, {
 // proxy for cameras
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 
+authorization_middleware.secret = secrets.jwt_secret
+
+
 /////////////
 // EXPRESS //
 /////////////
@@ -68,32 +73,29 @@ app.get('/floorplan',(req, res) => {
   res.sendFile(path.join(__dirname, 'floorplan/floorplan'));
 });
 
-app.post('/floorplan_upload',  (req, res) => {
-
-  // TODO: authenticate using JWT
+app.post('/floorplan_upload',authorization_middleware.middleware,  (req, res) => {
 
   var form = new formidable.IncomingForm();
   form.parse(req, (err, fields, files) => {
-    if (err) throw err;
+    if (err) return res.status(503).send('Error parsing form file')
 
-    if('image' in files){
-      var oldpath = files.image.path;
-      var newpath = './floorplan/floorplan';
-      fs.rename(oldpath, newpath, (err) => {
-        if (err) throw err;
-        res.send('OK')
-      });
-    }
-    else {
-      res.status(503).send('Image not found in files')
-    }
+    if(!files.image) return res.status(503).send('Image not found in files')
+
+    var oldpath = files.image.path;
+    var newpath = './floorplan/floorplan';
+    fs.rename(oldpath, newpath, (err) => {
+      if (err) return res.status(503).send('Error saving file')
+      res.send('OK')
+    });
+
+
 
   });
 });
 
 app.get('/camera', (req, res) => {
   // API to proxy camera stream to the front end
-
+  // TODO: Find better way to use JWT
   console.log('[Express] Request for camera')
 
   // Check if the request contains enough information
@@ -118,7 +120,7 @@ app.get('/camera', (req, res) => {
           // If the DB query was successful, create proxy to camera
           if(!result.stream_url) return res.sendStatus(500).send("DB entry does not have ")
 
-          console.log("[Camera] Currently streaming " + result.stream_url);
+          console.log(`[Camera] Currently streaming ${result.stream_url}`);
 
           // Removing some headers because some cameras (ESP-32 cam) don't support large headers
           delete req.headers.cookie;
@@ -126,10 +128,7 @@ app.get('/camera', (req, res) => {
           delete req.headers.referer;
 
           cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
-            if(proxy_error) {
-              return res.sendStatus(500).send("Error proxying camera")
-              console.log(proxy_error)
-            }
+            if(proxy_error) return res.sendStatus(500).send(`Error proxying camera: ${proxy_error}`)
           });
 
 
