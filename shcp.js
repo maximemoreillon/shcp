@@ -163,8 +163,6 @@ function authentication_function(payload, callback){
       callback(err, {
         username: decoded.username,
       })
-
-
     });
   }
 
@@ -262,7 +260,7 @@ io.sockets.on('connection', (socket) => {
       db.db(db_config.db_name)
       .collection(db_config.collection_name)
       .deleteOne( query , (err, result) => {
-        db.close();
+
         if (err) return console.log("[DB] Error deleting device");
 
         // Update front end
