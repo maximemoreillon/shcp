@@ -50,7 +50,7 @@ var mqtt_client  = mqtt.connect( secrets.MQTT.broker_url, {
 // proxy for cameras
 var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 
-authorization_middleware.secret = secrets.jwt_secret
+authorization_middleware.authentication_api_url = `${secrets.authentication_api_url}/decode_jwt`
 
 
 /////////////
