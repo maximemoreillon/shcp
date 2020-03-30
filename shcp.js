@@ -12,6 +12,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const formidable = require('formidable'); // Needed for foorplan upload
 const fs = require('fs'); // Needed for upload and serving of floorplan
+const axios = require('axios');
 
 const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware')
 const authorization_middleware = require('@moreillon/authorization_middleware')
@@ -154,33 +155,39 @@ function authentication_function(payload, callback){
 
   if('jwt' in payload){
     console.log('[Auth] user is trying to authenticate using JWT')
-    jwt.verify(payload.jwt, secrets.jwt_secret, (err, decoded) => {
-      // Just check if JWT can be decoded, i.e. secret is valid
-
-      if(err) return callback(err, false)
-
-      console.log("[Auth] JWT is valid")
-      callback(err, {
-        username: decoded.username,
+    axios.post(`${secrets.authentication_api_url}/decode_jwt`,{
+      jwt: payload.jwt,
+    })
+    .then(response => {
+      console.log(`[Auth] JWT is valid for ${response.data.properties.username}`)
+      callback(false, {
+        username: response.data.properties.username,
       })
-    });
+
+    })
+    .catch(error => {
+      console.log(`[Auth] Invalid JWT`)
+      callback(error, false)
+    })
+
   }
 
   else if('credentials' in payload){
     console.log('[Auth] user is trying to authenticate using credentials')
-    if(payload.credentials.username === secrets.app.username
-      && payload.credentials.password === secrets.app.password ){
-      console.log("[Auth] Credentials are valid")
+    axios.post(`${secrets.authentication_api_url}/login`,{
+      username: payload.credentials.username,
+      password: payload.credentials.password,
+    })
+    .then(response => {
+      console.log(`[Auth] Credentials are valid for ${payload.credentials.username}`)
       callback(false, {
-        jwt: jwt.sign({
-          username: secrets.app.username
-        }, secrets.jwt_secret)
+        jwt: response.data.jwt
       })
-    }
-    else {
-      console.log("[Auth] Credentials are not valid")
+    })
+    .catch(error => {
+      console.log(`[Auth] Wrong credentials for ${payload.credentials.username}`)
       callback(false, false)
-    }
+    })
   }
 }
 
