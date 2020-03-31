@@ -104,6 +104,7 @@ app.get('/camera', (req, res) => {
 
   // Verify token
   // TODO: Send token in authorization header
+  // TODO: Use the authentication api
   jwt.verify(req.query.jwt, secrets.jwt_secret, (err, decoded) => {
 
     if(err) return res.sendStatus(401).send("Invalid JWT")
