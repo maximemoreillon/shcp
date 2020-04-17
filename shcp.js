@@ -170,7 +170,6 @@ function authentication_function(payload, callback){
       console.log(`[Auth] Invalid JWT`)
       callback(error, false)
     })
-
   }
 
   else if('credentials' in payload){
