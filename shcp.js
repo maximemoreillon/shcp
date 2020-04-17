@@ -167,7 +167,7 @@ function authentication_function(payload, callback){
 
     })
     .catch(error => {
-      console.log(`[Auth] Invalid JWT`)
+      console.log(`[Auth] Invalid JWT: ${error}`)
       callback(error, false)
     })
   }
