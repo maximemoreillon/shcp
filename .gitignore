@@ -1,3 +1,4 @@
 config/credentials.js
 node_modules/*
 secrets.js
+.env

@@ -18,7 +18,9 @@ const socketio_authentication_middleware = require('@moreillon/socketio_authenti
 const authorization_middleware = require('@moreillon/authorization_middleware')
 
 
-const PORT = 7070;
+var port = 80
+if(process.env.APP_port) port=process.env.APP_port
+
 const secrets = require('./secrets');
 
 const db_config = {
@@ -419,6 +421,6 @@ mqtt_client.on('message', (status_topic, payload) => {
 
 
 // Run the server
-http_server.listen(PORT, () => {
-  console.log(`[Express] listening on port ${PORT}`);
+http_server.listen(port, () => {
+  console.log(`[Express] listening on port ${port}`);
 });
