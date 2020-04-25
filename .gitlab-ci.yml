@@ -32,3 +32,5 @@ deployment:
     - kubectl rollout restart deployment/${APPLICATION_NAME}
   environment:
     name: production
+    kubernetes:
+      namespace: ${KUBERNETES_NAMESPACE}
