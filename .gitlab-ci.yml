@@ -5,7 +5,7 @@ stages:
 variables:
   APPLICATION_NAME: shcp
   DOCKER_IMAGE: ${CONTAINER_REGISTRY}/${APPLICATION_NAME}
-  CERTIFICATE_DOMAIN: api.shcp.maximemoreillon.com
+  CERTIFICATE_DOMAIN: shcp.maximemoreillon.com
 
 
 
