@@ -6,7 +6,6 @@ const http = require('http')
 const mqtt = require('mqtt')
 const socketio = require('socket.io')
 const MongoDB = require('mongodb')
-const httpProxy = require('http-proxy') // For camera
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
 const formidable = require('formidable') // Needed for foorplan upload
@@ -51,8 +50,6 @@ var mqtt_client  = mqtt.connect( secrets.MQTT.broker_url, {
   password: secrets.MQTT.password
 });
 
-// proxy for cameras
-var cameraProxy = httpProxy.createProxyServer({ ignorePath: true});
 
 authorization_middleware.authentication_api_url = `${secrets.authentication_api_url}/decode_jwt`
 
@@ -89,56 +86,6 @@ app.post('/floorplan_upload',authorization_middleware.middleware,  (req, res) =>
     });
   });
 });
-
-app.get('/camera', (req, res) => {
-  // API to proxy camera stream to the front end
-  // TODO: Find better way to use JWT
-  console.log('[Express] Request for camera')
-
-  // Check if the request contains enough information
-  if(!req.query._id || !req.query.jwt) return res.sendStatus(400).send('Missing ID or JWT');
-
-  // Verify token
-  // TODO: Send token in authorization header
-  // TODO: Use the authentication api
-  jwt.verify(req.query.jwt, secrets.jwt_secret, (err, decoded) => {
-
-    if(err) return res.sendStatus(401).send("Invalid JWT")
-
-    if(decoded) {
-
-      MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
-        if (err) return res.sendStatus(500).send("Error connecting to the DB")
-        db.db(db_config.db_name)
-        .collection(db_config.collection_name)
-        .findOne({_id: ObjectID(req.query._id)}, (err, result) => {
-          db.close();
-          if (err) return res.sendStatus(500).send("Error getting camera from the DB")
-
-
-          // If the DB query was successful, create proxy to camera
-          if(!result.stream_url) return res.sendStatus(500).send("DB entry does not have ")
-
-          console.log(`[Camera] Currently streaming ${result.stream_url}`);
-
-          // Removing some headers because some cameras (ESP-32 cam) don't support large headers
-          delete req.headers.cookie;
-          delete req.headers.via;
-          delete req.headers.referer;
-
-
-          cameraProxy.web(req, res, {target: result.stream_url}, (proxy_error) => {
-            if(proxy_error) return console.log("[Camera] Failed to proxy camera")
-          });
-
-        }); // End of findOne
-      }); // End of MongoClient.connect
-    }
-  });
-
-});
-
-
 
 
 
