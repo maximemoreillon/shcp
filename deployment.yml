@@ -15,9 +15,15 @@ spec:
       containers:
       - name: ${APPLICATION_NAME}
         image: ${CONTAINER_REGISTRY}/${APPLICATION_NAME}
-        imagePullPolicy: Always # Ensures that k8s pulls a new image on restart
+        # Ensures that k8s pulls a new image on restart
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
+        # Get environment variables from secret
+        envFrom:
+        - secretRef:
+           name: environment-variables
+      # Provide credentials to the docker registry
       imagePullSecrets:
       - name: registry-credentials
 ---
@@ -35,20 +41,23 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: ${APPLICATION_NAME} # Name of the ingress, named after the application
+  # Name of the ingress, named after the application
+  name: ${APPLICATION_NAME}
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod" # This is necessary, no idea why
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   tls:
   - hosts:
     - ${CERTIFICATE_DOMAIN}
-    secretName: ${APPLICATION_NAME} # Name of the secret, i.e. the certificates
+    # Name of the secret, i.e. the certificates
+    secretName: ${APPLICATION_NAME}
   rules:
   - host: ${CERTIFICATE_DOMAIN}
     http:
       paths:
       - path: /
         backend:
-          serviceName: ${APPLICATION_NAME} # Name of the service, named after the app
+          # Name of the service, named after the app
+          serviceName: ${APPLICATION_NAME}
           servicePort: 80

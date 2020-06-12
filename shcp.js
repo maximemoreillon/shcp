@@ -22,10 +22,9 @@ var port = 80
 
 if(process.env.APP_PORT) port=process.env.APP_PORT
 
-const secrets = require('./secrets');
 
 const db_config = {
-  db_url : secrets.mongodb_url,
+  db_url : process.env.MONGODB_URL,
   db_name : "shcp",
   collection_name : "devices",
 }
@@ -45,13 +44,16 @@ var http_server = http.Server(app);
 var io = socketio(http_server);
 
 // Connect to MQTT
-var mqtt_client  = mqtt.connect( secrets.MQTT.broker_url, {
-  username: secrets.MQTT.username,
-  password: secrets.MQTT.password
-});
+var mqtt_client  = mqtt.connect(
+  process.env.MQTT_URL,
+  {
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD
+  }
+)
 
 
-authorization_middleware.authentication_api_url = `${secrets.authentication_api_url}/decode_jwt`
+authorization_middleware.authentication_api_url = `${process.env.AUTHENTICATION_API_URL}/decode_jwt`
 
 
 /////////////
@@ -99,7 +101,7 @@ function authentication_function(payload, callback){
 
   if('jwt' in payload){
     console.log('[Auth] user is trying to authenticate using JWT')
-    axios.post(`${secrets.authentication_api_url}/decode_jwt`,{
+    axios.post(`${process.env.AUTHENTICATION_API_URL}/decode_jwt`,{
       jwt: payload.jwt,
     })
     .then(response => {
@@ -117,7 +119,7 @@ function authentication_function(payload, callback){
 
   else if('credentials' in payload){
     console.log('[Auth] user is trying to authenticate using credentials')
-    axios.post(`${secrets.authentication_api_url}/login`,{
+    axios.post(`${process.env.AUTHENTICATION_API_URL}/login`,{
       username: payload.credentials.username,
       password: payload.credentials.password,
     })
