@@ -2,7 +2,7 @@
   "name": "shcp",
   "version": "1.0.0",
   "description": "Smart Home Control Panel",
-  "main": "main.js",
+  "main": "shcp.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

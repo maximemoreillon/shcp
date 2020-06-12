@@ -1,25 +1,27 @@
 // Depenedencies
-const path = require('path');
-const express = require('express');
-const history = require('connect-history-api-fallback');
-const bodyParser = require("body-parser");
-const http = require('http');
-const mqtt = require('mqtt');
-const socketio = require('socket.io');
-const MongoDB = require('mongodb');
-const httpProxy = require('http-proxy'); // For camera
-const jwt = require('jsonwebtoken');
-const cors = require('cors');
-const formidable = require('formidable'); // Needed for foorplan upload
-const fs = require('fs'); // Needed for upload and serving of floorplan
-const axios = require('axios');
+const path = require('path')
+const express = require('express')
+const bodyParser = require("body-parser")
+const http = require('http')
+const mqtt = require('mqtt')
+const socketio = require('socket.io')
+const MongoDB = require('mongodb')
+const httpProxy = require('http-proxy') // For camera
+const jwt = require('jsonwebtoken')
+const cors = require('cors')
+const formidable = require('formidable') // Needed for foorplan upload
+const fs = require('fs') // Needed for upload and serving of floorplan
+const axios = require('axios')
+
+require('dotenv').config()
+
 
 const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware')
 const authorization_middleware = require('@moreillon/authorization_middleware')
 
-
 var port = 80
-if(process.env.APP_port) port=process.env.APP_port
+
+if(process.env.APP_PORT) port=process.env.APP_PORT
 
 const secrets = require('./secrets');
 
@@ -60,17 +62,12 @@ authorization_middleware.authentication_api_url = `${secrets.authentication_api_
 /////////////
 
 app.use(bodyParser.json());
-
-app.use(history({
-  // Ignore routes for connect-history-api-fallback
-  rewrites: [
-    { from: '/camera', to: '/camera'},
-    { from: '/floorplan', to: '/floorplan'},
-  ]
-}));
-app.use(express.static(path.join(__dirname, 'dist')));
-
 app.use(cors())
+
+app.get('/',(req, res) => {
+  res.send('SHCP API, Maxime MOREILLON')
+});
+
 
 app.get('/floorplan',(req, res) => {
   res.sendFile(path.join(__dirname, 'floorplan/floorplan'));
@@ -90,9 +87,6 @@ app.post('/floorplan_upload',authorization_middleware.middleware,  (req, res) =>
       if (err) return res.status(503).send('Error saving file')
       res.send('OK')
     });
-
-
-
   });
 });
 
@@ -387,6 +381,8 @@ mqtt_client.on('connect', () => {
 mqtt_client.on('message', (status_topic, payload) => {
   // Callback for MQTT messages
   // Used to update the state of devices in the back and front end
+
+  console.log(payload.toString())
 
 
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
