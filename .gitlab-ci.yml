@@ -12,8 +12,8 @@ variables:
 containerization:
   stage: containerization
   script:
-    # If docker registry password provided, attempt login
-    - else echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin;
+    # Docker hub login
+    - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin;
     # Building and pushing container image
     - docker build -t ${DOCKER_IMAGE} .
     - docker push ${DOCKER_IMAGE}
