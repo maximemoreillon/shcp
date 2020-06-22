@@ -4,7 +4,7 @@ stages:
 
 variables:
   APPLICATION_NAME: shcp
-  DOCKER_IMAGE: ${CONTAINER_REGISTRY}/${APPLICATION_NAME}
+  DOCKER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
   CERTIFICATE_DOMAIN: api.shcp.maximemoreillon.com
 
 
@@ -13,11 +13,7 @@ containerization:
   stage: containerization
   script:
     # If docker registry password provided, attempt login
-    - >
-      if [ -z ${CONTAINER_REGISTRY_PASSWORD} ];
-      then echo "CONTAINER_REGISTRY_PASSWORD not set, skipping login";
-      else echo "${CONTAINER_REGISTRY_PASSWORD}" | docker login ${CONTAINER_REGISTRY} --username ${CONTAINER_REGISTRY_USERNAME} --password-stdin;
-      fi
+    - else echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin;
     # Building and pushing container image
     - docker build -t ${DOCKER_IMAGE} .
     - docker push ${DOCKER_IMAGE}
