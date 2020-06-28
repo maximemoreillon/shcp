@@ -1,6 +1,5 @@
 // Depenedencies
 const bodyParser = require("body-parser")
-const mqtt = require('mqtt')
 const socketio = require('socket.io')
 const MongoDB = require('mongodb')
 const jwt = require('jsonwebtoken')
@@ -35,19 +34,7 @@ const ObjectID = MongoDB.ObjectID
 const app = require('./express.js')
 const http_server = require('./http_server.js')
 const io = require('./socketio.js')
-
-// Instanciate web server
-
-// Instanciate Websockets
-
-// Connect to MQTT
-var mqtt_client  = mqtt.connect(
-  process.env.MQTT_URL,
-  {
-    username: process.env.MQTT_USERNAME,
-    password: process.env.MQTT_PASSWORD
-  }
-)
+const mqtt_client  = require('./mqtt.js')
 
 
 
@@ -56,7 +43,7 @@ var mqtt_client  = mqtt.connect(
 // EXPRESS //
 /////////////
 
-app.use(bodyParser.json());
+app.use(bodyParser.json())
 app.use(cors())
 app.get('/',(req, res) => { res.send('SHCP API, Maxime MOREILLON')})
 app.use('/floorplan', require('./express_routes/floorplan.js'))
