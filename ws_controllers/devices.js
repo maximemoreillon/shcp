@@ -1,5 +1,6 @@
 const mongodb = require('mongodb')
 const dotenv = require('dotenv')
+const io = require('../socketio.js')
 
 dotenv.config()
 

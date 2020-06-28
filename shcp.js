@@ -1,8 +1,6 @@
 // Depenedencies
 const path = require('path')
-const express = require('express')
 const bodyParser = require("body-parser")
-const http = require('http')
 const mqtt = require('mqtt')
 const socketio = require('socket.io')
 const MongoDB = require('mongodb')
@@ -16,9 +14,7 @@ dotenv.config()
 
 const socketio_authentication_middleware = require('@moreillon/socketio_authentication_middleware')
 
-var port = 80
-
-if(process.env.APP_PORT) port=process.env.APP_PORT
+const port = process.env.APP_PORT || 80
 
 
 const db_config = {
@@ -33,17 +29,17 @@ const db_config = {
 
 
 // MongoDB objects
-var MongoClient = MongoDB.MongoClient
-var ObjectID = MongoDB.ObjectID
+const MongoClient = MongoDB.MongoClient
+const ObjectID = MongoDB.ObjectID
 
 // Create an instance of express app
-var app = express();
+const app = require('./express.js')
+const http_server = require('./http_server.js')
+const io = require('./socketio.js')
 
 // Instanciate web server
-var http_server = http.Server(app);
 
 // Instanciate Websockets
-var io = socketio(http_server);
 
 // Connect to MQTT
 var mqtt_client  = mqtt.connect(
