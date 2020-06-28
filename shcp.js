@@ -1,5 +1,4 @@
 // Depenedencies
-const path = require('path')
 const bodyParser = require("body-parser")
 const mqtt = require('mqtt')
 const socketio = require('socket.io')
@@ -75,7 +74,7 @@ io.sockets.on('connection', (socket) => {
   socket.use(socketio_authentication_middleware(socket, authentication_function))
 
   // Respond to WS messages
-  socket.on('get_all_devices_from_back_end', devices_controller.add_one_device_in_back_end)
+  socket.on('get_all_devices_from_back_end', devices_controller.get_all_devices_from_back_end)
   socket.on("add_one_device_in_back_end", devices_controller.add_one_device_in_back_end)
   socket.on("delete_one_device_in_back_end", devices_controller.delete_one_device_in_back_end)
   socket.on("edit_one_device_in_back_end", devices_controller.update_one_device_in_back_end)
@@ -125,7 +124,7 @@ mqtt_client.on('message', (status_topic, payload) => {
   // Callback for MQTT messages
   // Used to update the state of devices in the back and front end
 
-  console.log(payload.toString())
+  //console.log(payload.toString())
 
 
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
