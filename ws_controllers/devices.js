@@ -6,6 +6,7 @@ const mqtt_client  = require('../mqtt.js')
 dotenv.config()
 
 const MongoClient = mongodb.MongoClient
+const ObjectID = mongodb.ObjectID
 
 const db_config = {
   db_url : process.env.MONGODB_URL,
