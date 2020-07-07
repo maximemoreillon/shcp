@@ -48,19 +48,34 @@ exports.message_callback = (status_topic, payload) => {
   // Callback for MQTT messages
   // Used to update the state of devices in the back and front end
 
+  //console.log(payload.toString())
+
+
   MongoClient.connect(db_config.db_url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, db) => {
     if (err) throw err;
     var dbo = db.db(db_config.db_name);
 
     var query = { status_topic: String(status_topic) };
     var action = { $set: {state: String(payload)} };
-    let options = { returnOriginal: false }
+
 
     // Update DB
-    dbo.collection(db_config.collection_name).findOneAndUpdate( query, action,options, (err, result) => {
-      if (err) return console.log("[DB] Error upating devices");
-      db.close()
-      io.sockets.emit('add_or_update_some_in_front_end', [result.value]);
+    // Apparenly no other way to find and update many documents
+    dbo.collection(db_config.collection_name).updateMany( query, action, (err, update_result) => {
+      if (err) {
+        db.close();
+        return console.log("[DB] Error upating devices");
+      }
+
+      // Update front end
+      dbo.collection(db_config.collection_name).find(query).toArray((err, find_result) =>{
+        db.close();
+        if (err) return console.log("[DB] Error getting devices")
+
+        // This broadcast to all clients
+        io.sockets.emit('add_or_update_some_in_front_end', find_result);
+      })
     })
+
   })
 }
