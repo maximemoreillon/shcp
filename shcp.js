@@ -76,12 +76,12 @@ io.sockets.on('connection', (socket) => {
 
   // Basic CUD operations
   // Updates are emitted to everyone
-  socket.on("add_one_device_in_back_end", devices_controller.create_device)
-  socket.on("delete_one_device_in_back_end", devices_controller.delete_device)
-  socket.on("edit_one_device_in_back_end", devices_controller.update_device)
+  socket.on("create_device", devices_controller.create_device)
+  socket.on("delete_device", devices_controller.delete_device)
+  socket.on("update_device", devices_controller.update_device)
 
   // individual sockets
-  socket.on('get_all_devices_from_back_end', devices_controller.get_all_devices(socket))
+  socket.on('get_all_devices', devices_controller.get_all_devices(socket))
   socket.on("front_to_mqtt", devices_controller.front_to_mqtt)
 
   socket.on('disconnect', () => { console.log('[WS] user disconnected') })

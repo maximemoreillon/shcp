@@ -13,10 +13,10 @@ const db_config = require('../db_config.js')
 
 exports.get_all_devices = (socket) => {
 
+  // Wrapping so as to get access to socket
   return () => {
     // This is weird, it should not emit to everyone
 
-    console.log("[WS] get_all_devices_from_back_end")
     MongoClient.connect(db_config.db_url, db_config.options, (err, db) => {
 
       if (err) return console.log('[DB] Error connecting to the database')
@@ -28,8 +28,10 @@ exports.get_all_devices = (socket) => {
         db.close()
         if (err) return console.log("[DB] Error finding devices")
 
+        console.log(`[DB] device list queried`)
+
         // Emit only to the socket that requests the
-        socket.emit('delete_and_create_all_in_front_end', find_result)
+        socket.emit('all_devices', find_result)
       })
     })
   }
@@ -40,8 +42,6 @@ exports.get_all_devices = (socket) => {
 }
 
 exports.create_device = (device) => {
-
-  console.log("[WS] Creating one device");
 
   MongoClient.connect(db_config.db_url, db_config.options, (err, db) => {
     if (err) return console.log('[DB] Error connecting to the database')
@@ -57,29 +57,65 @@ exports.create_device = (device) => {
 
       db.close()
 
-      console.log(`[DB] created device ${result.ops[0]._id}`)
+      const created_device = result.ops[0]
+
+      console.log(`[DB] created device ${created_device._id}`)
 
       // NOTE: new device in resut.ops
       // result.ops is an array
 
       // Update front end
-      io.emit('add_or_update_some_in_front_end', result.ops)
+      // Sending as array of devices because some updates might affect multiple devices
+      io.emit('some_devices_added_or_updated', [created_device])
 
-      // Even if only one device is added, result.ops is still an array
-      result.ops.forEach((op) => {
-        //Subscribe to all new topics if provided
-        if('status_topic' in op && op.status_topic !== "") {
-          console.log(`[MQTT] subscribing to ${op.status_topic}`)
-          mqtt_client.subscribe(op.status_topic)
-        }
-      })
+      //Subscribe to all new topics if provided
+      if('status_topic' in created_device && created_device.status_topic !== "") {
+        console.log(`[MQTT] subscribing to ${created_device.status_topic}`)
+        mqtt_client.subscribe(created_device.status_topic)
+      }
 
     })
   })
 }
 
+exports.update_device = (device) => {
+
+  MongoClient.connect(db_config.db_url, db_config.options, (err, db) => {
+    if (err) return console.log('[DB] Error connecting to the database')
+
+    let {_id, ...new_properties} = device
+
+    // Look fore device by ID
+    const query = { _id: ObjectID(_id) }
+
+    const options = { returnOriginal: false }
+
+    // Using replace to get rid of previous device propertiess
+    db.db(db_config.db_name)
+    .collection(db_config.collection_name)
+    .findOneAndReplace(query, new_properties, options, (err, result) => {
+      db.close();
+      if (err) return console.log("[DB] Error editing device");
+
+      db.close()
+
+      const updated_device = result.value
+
+      console.log(`[DB] device ${updated_device._id} updated`)
+
+      // Sending as array of devices because some updates might affect multiple devices
+      io.sockets.emit('some_devices_added_or_updated', [updated_device])
+
+      // Deal with MQTT subscriptions
+      if(typeof updated_device.status_topic !== 'undefined' && updated_device.status_topic != "") {
+        console.log(`[MQTT] subscribing to ${updated_device.status_topic}`)
+        mqtt_client.subscribe(updated_device.status_topic)
+      }
+    })
+  })
+}
+
 exports.delete_device = (device) => {
-  console.log("[WS] Delete device")
 
   MongoClient.connect(db_config.db_url, db_config.options, (err, db) => {
     if (err) return console.log('[DB] Error connecting to the database')
@@ -95,7 +131,7 @@ exports.delete_device = (device) => {
       console.log(`[DB] Device ${device._id} deleted`)
 
       // Update front end
-      io.emit('delete_some_in_front_end', [device])
+      io.emit('device_deleted', device)
 
       // Unsubscribe from topic if needed
       if(!('status_topic' in device)) return db.close()
@@ -123,45 +159,14 @@ exports.delete_device = (device) => {
   })
 }
 
-exports.update_device = (device) => {
 
-  console.log("[WS] updating device");
-  MongoClient.connect(db_config.db_url, db_config.options, (err, db) => {
-    if (err) return console.log('[DB] Error connecting to the database')
-
-    let {_id, ...new_properties} = device
-
-    // Look fore device by ID
-    const query = { _id: ObjectID(_id) }
-
-    const options = { returnOriginal: false }
-
-    // Using replace to get rid of previous device propertiess
-    db.db(db_config.db_name)
-    .collection(db_config.collection_name)
-    .findOneAndReplace(query, new_properties, options, (err, result) => {
-      db.close();
-      if (err) return console.log("[DB] Error editing device");
-
-      db.close()
-
-      console.log(`[DB] device ${result.value._id} updated`)
-      io.sockets.emit('add_or_update_some_in_front_end', [result.value])
-
-      // Deal with MQTT subscriptions
-      if(typeof result.value.status_topic !== 'undefined' && result.value.status_topic != "") {
-        console.log(`[MQTT] subscribing to ${result.value.status_topic}`)
-        mqtt_client.subscribe(result.value.status_topic)
-      }
-    })
-  })
-}
 
 exports.front_to_mqtt = (message) => {
   // Convert WS messages into MQTT messages
-  console.log("[WS] front_to_mqtt")
 
   if(!message.command_topic || !message.payload) return
+
+  console.log(`[WS to MQTT] Publishing to ${message.command_topic}`)
 
   const publish_options = {
     qos: 1,

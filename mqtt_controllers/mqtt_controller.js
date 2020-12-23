@@ -71,7 +71,8 @@ exports.message_callback = (topic, payload) => {
         if (err) return console.log("[DB] Error getting devices")
 
         // Broadcast to all clients
-        io.sockets.emit('add_or_update_some_in_front_end', find_result);
+        // Sending as array of devices because some updates might affect multiple devices
+        io.sockets.emit('some_devices_added_or_updated', find_result)
       })
     })
 
