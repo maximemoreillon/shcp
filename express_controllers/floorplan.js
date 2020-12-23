@@ -4,12 +4,11 @@ const path = require('path')
 
 
 exports.get_floorplan = (req, res) => {
-  console.log('here')
   res.sendFile(path.join(__dirname, '../floorplan/floorplan'));
 }
 
 exports.floorplan_upload = (req, res) => {
-  var form = new formidable.IncomingForm();
+  var form = new formidable.IncomingForm()
   form.parse(req, (err, fields, files) => {
     if (err) return res.status(503).send('Error parsing form file')
 
@@ -20,6 +19,6 @@ exports.floorplan_upload = (req, res) => {
     fs.rename(oldpath, newpath, (err) => {
       if (err) return res.status(503).send('Error saving file')
       res.send('OK')
-    });
-  });
+    })
+  })
 }
