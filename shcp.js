@@ -20,7 +20,6 @@ const init = async () => {
   websockets.init(server)
   await db.connect()
   mqtt.init()
-
 }
 
 init()
