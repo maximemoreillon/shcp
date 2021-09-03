@@ -1,6 +1,6 @@
 {
   "name": "shcp",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "description": "Smart Home Control Panel",
   "main": "shcp.js",
   "scripts": {
@@ -22,18 +22,18 @@
   },
   "homepage": "https://github.com/maximemoreillon/shcp",
   "dependencies": {
-    "@moreillon/authorization_middleware": "^0.3.0",
+    "@moreillon/express_identification_middleware": "^1.1.0",
     "@moreillon/socketio_authentication_middleware": "0.0.1",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "cors": "^2.8.5",
-    "dotenv": "^8.2.0",
+    "dotenv": "^8.6.0",
     "express": "^4.17.1",
     "formidable": "^1.2.2",
-    "http-proxy": "^1.18.0",
+    "http-proxy": "^1.18.1",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^3.5.4",
+    "mongodb": "^3.7.0",
     "mqtt": "^3.0.0",
     "request": "^2.88.2",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.4.1"
   }
 }

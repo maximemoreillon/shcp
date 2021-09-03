@@ -1,15 +1,24 @@
 const axios = require('axios')
 const dotenv = require('dotenv')
+
+
+
+
 dotenv.config()
+
+
+
 
 module.exports = (payload, callback) => {
 
   console.log("[Auth] authentication_function")
 
-  if('jwt' in payload){
+  if(payload.jwt){
     console.log('[Auth] user is trying to authenticate using JWT')
-    axios.post(`${process.env.AUTHENTICATION_API_URL}/decode_jwt`,{
-      jwt: payload.jwt,
+    axios.get(`${process.env.AUTHENTICATION_API_URL}/v2/whoami`,{
+      headers: {
+        Authorization: `Bearer ${payload.jwt}`
+      }
     })
     .then(response => {
       console.log(`[Auth] JWT is valid for ${response.data.properties.username}`)
@@ -24,7 +33,7 @@ module.exports = (payload, callback) => {
     })
   }
 
-  else if('credentials' in payload){
+  else if(payload.credentials){
     console.log('[Auth] user is trying to authenticate using credentials')
     axios.post(`${process.env.AUTHENTICATION_API_URL}/login`,{
       username: payload.credentials.username,
