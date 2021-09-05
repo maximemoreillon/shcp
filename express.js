@@ -42,7 +42,7 @@ const init = () => {
   app.use(cors())
 
   app.get('/', root_controller)
-  app.use('/floorplan', floorplan_router)
+  app.use('/floorplan',  auth(auth_options), floorplan_router)
   app.use('/devices', auth(auth_options), devices_router)
 
   return app

@@ -11,9 +11,10 @@ const broker_url = process.env.MQTT_URL || 'mqtt:localhost'
 let client
 
 const init = () => {
-  mqtt_client = mqtt.connect(broker_url, connection_options)
-  mqtt_client.on('connect', connection_callback)
-  mqtt_client.on('message', message_callback)
+  console.log('[MQTT] Initialization')
+  client = mqtt.connect(broker_url, connection_options)
+  client.on('connect', connection_callback)
+  client.on('message', message_callback)
 }
 
 
@@ -27,7 +28,7 @@ const subscribe_all = async () => {
   .filter(device => device.status_topic)
   .forEach(({status_topic}) => {
     //console.log(`[MQTT] Subscribing to ${status_topic}`)
-    mqtt_client.subscribe(status_topic)
+    client.subscribe(status_topic)
   })
 }
 

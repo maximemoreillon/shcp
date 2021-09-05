@@ -4,39 +4,39 @@ const { get_io } = require('../websockets.js')
 
 
 const subscribe_if_possible = (device) => {
-    if ('status_topic' in device && device.status_topic !== "") {
-        console.log(`[MQTT] subscribing to ${device.status_topic}`)
-        // Not very nice
-        require('../mqtt.js').client.subscribe(device.status_topic)
-    }
+    if (!device.status_topic || device.status_topic === "") return
+
+    // Not very nice
+    console.log(`[MQTT] subscribing to ${device.status_topic}`)
+    require('../mqtt.js')
+      .get_mqtt_client()
+      .subscribe(device.status_topic)
 }
 
 
-const unsubscribe_if_possible = async (device) => {
+const unsubscribe_if_possible = async ({status_topic}) => {
 
-    const all_devices = await get_collection()
-        .find({})
-        .toArray()
+  if (!status_topic) return
 
-    const device_with_same_status_topic = all_devices.find(e => e.status_topic === device.status_topic)
-    if (!device_with_same_status_topic) {
-        console.log(`[MQTT] Unsubscribing from topic ${device.status_topic}`)
-        // Not very nice
-        require('../mqtt.js').client.unsubscribe(device.status_topic)
-    }
-    else {
-        console.log(`[MQTT] topic ${device.status_topic} is used by another device, keeping subscribtion`)
-    }
+  const devices_with_same_topic = await get_collection()
+      .find({status_topic})
+      .toArray()
+
+  if(devices_with_same_topic.length) return
+  
+  console.log(`[MQTT] Unsubscribing from ${status_topic}`)
+  require('../mqtt.js').get_mqtt_client().unsubscribe(status_topic)
+
 }
 
 exports.read_all = async () => {
-    
+
     const result =  await get_collection()
         .find({})
         .toArray()
-    
+
     console.log(`[MongoDB] Queried all devices`)
-    
+
     return result
 }
 
@@ -55,12 +55,14 @@ exports.read = async (device_id) => {
 exports.create = async (device) => {
     const result =  await get_collection()
         .insertOne(device)
-    
+
     const created_device = result.ops[0]
     get_io().sockets.emit('some_devices_added_or_updated', [created_device])
 
     // subscribe if possible
     subscribe_if_possible(created_device)
+
+    console.log(`[MongoDB] Device ${created_device._id} created`)
 
     return created_device
 }
@@ -69,14 +71,19 @@ exports.update = async (device_id, new_properties) => {
 
     const query = { _id: ObjectID(device_id) }
     const options = { returnOriginal: false }
+
     const result =  await get_collection()
         .findOneAndReplace(query, new_properties, options)
-    
+
     const updated_device = result.value
-    
+
     get_io().sockets.emit('some_devices_added_or_updated', [updated_device])
 
+    // Technically, should unsubscribe from previous topic
+
     subscribe_if_possible(updated_device)
+
+    console.log(`[MongoDB] Device ${updated_device._id} updated`)
 
     return result
 }
@@ -103,11 +110,13 @@ exports.delete = async (device) => {
     const result = await get_collection()
         .deleteOne(query)
 
-    get_io.sockets.emit('device_deleted', device)
+    get_io().sockets.emit('device_deleted', device)
 
     // unsub
     await unsubscribe_if_possible(device)
-    
-    
+
+    console.log(`[MongoDB] Device ${device._id} deleted`)
+
+
     return result
 }

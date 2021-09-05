@@ -36,20 +36,21 @@ const connection_callback = (socket) => {
     socket.on('get_all_devices', get_all_devices(socket))
     socket.on("front_to_mqtt", front_to_mqtt)
 
-    
+
 
 }
 
 const create_device = async (device) => {
-    await devices_controller.create(device)
+  await devices_controller.create(device)
 }
 
 const update_device = async (device) => {
-    await devices_controller.update(device)
+  const {_id, ...device_properties} = device
+  await devices_controller.update(_id,device_properties)
 }
 
 const delete_device = async (device) => {
-    await devices_controller.delete(device)
+  await devices_controller.delete(device)
 }
 
 const get_all_devices = (socket) => {
