@@ -23,7 +23,7 @@ const unsubscribe_if_possible = async ({status_topic}) => {
       .toArray()
 
   if(devices_with_same_topic.length) return
-  
+
   console.log(`[MQTT] Unsubscribing from ${status_topic}`)
   require('../mqtt.js').get_mqtt_client().unsubscribe(status_topic)
 
@@ -80,7 +80,7 @@ exports.update = async (device_id, new_properties) => {
     get_io().sockets.emit('some_devices_added_or_updated', [updated_device])
 
     // Technically, should unsubscribe from previous topic
-
+    // TODO; subscribe only if new properties contain topic
     subscribe_if_possible(updated_device)
 
     console.log(`[MongoDB] Device ${updated_device._id} updated`)
@@ -96,6 +96,9 @@ exports.update_many = async ({query, action}) => {
     const updated_devices = await get_collection()
         .find(query)
         .toArray()
+
+
+    // Technically, should subscribe to new topics
 
     get_io().sockets.emit('some_devices_added_or_updated', updated_devices)
 

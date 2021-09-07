@@ -74,7 +74,7 @@ const front_to_mqtt = (message) => {
 
     const publish_options = { qos: 1, retain: true }
 
-    mqtt_client.publish(message.command_topic, message.payload, publish_options)
+    require('./mqtt.js').get_mqtt_client().publish(message.command_topic, message.payload, publish_options)
 }
 
 
