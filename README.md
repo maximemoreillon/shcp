@@ -2,6 +2,8 @@
 
 This is a Node.js web app that allows users to control and monitor IoT devices.
 
+Project page: https://articles.maximemoreillon.com/articles/154
+
 Currently, the app can handle the following type of devices:
 
 * MQTT enabled lights
