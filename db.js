@@ -1,48 +1,49 @@
-const { MongoClient} = require('mongodb')
+const { MongoClient } = require('mongodb')
 const dotenv = require('dotenv')
 
 dotenv.config()
 
-const db_url = process.env.MONGODB_URL || 'mongodb://mongo'
-const db_name = process.env.MONGODB_DB || 'shcp'
-const collection = process.env.MONGODB_COLLECTION || 'devices'
+
+const {
+  MONGODB_URL = 'mongodb://mongo',
+  MONGODB_DB = 'shcp',
+  MONGODB_COLLECTION = 'devices',
+} = process.env
 
 
 const mongodb_options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 }
 
 let db
 
-const connect = () => {
-    return new Promise((resolve, reject) => {
-        console.log(`[MongoDB] Connecting...`)
-        MongoClient.connect(db_url, mongodb_options)
-            .then(client => {
+const connect = () => new Promise((resolve, reject) => {
+  console.log(`[MongoDB] Connecting...`)
+  MongoClient.connect(MONGODB_URL, mongodb_options)
+    .then(client => {
 
-                console.log(`[MongoDB] Connected`)
-                db = client.db(db_name)
+        console.log(`[MongoDB] Connected`)
+        db = client.db(MONGODB_DB)
 
-                resolve(db)
+        resolve(db)
 
-            })
-            .catch(error => {
-                console.log(error)
-                console.log(`[MongoDB] Connection failed`)
-                //setTimeout(mongodb_connect, 5000)
-
-                reject(error)
-            })
     })
-    
-}
+    .catch(error => {
+        console.log(error)
+        console.log(`[MongoDB] Connection failed`)
+        //setTimeout(connect, 5000)
+
+        reject(error)
+    })
+})
 
 
 
-exports.collection = collection
-exports.db_name = db_name
-exports.url = db_url
+
+exports.url = MONGODB_URL
+exports.db_name = MONGODB_DB
+exports.collection = MONGODB_COLLECTION
 exports.get_db = () => db
-exports.get_collection = () => db.collection(collection)
+exports.get_collection = () => db.collection(MONGODB_COLLECTION)
 exports.connect = connect

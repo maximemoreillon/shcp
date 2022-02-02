@@ -1,13 +1,7 @@
 const axios = require('axios')
 const dotenv = require('dotenv')
 
-
-
-
 dotenv.config()
-
-
-
 
 module.exports = (payload, callback) => {
 
@@ -20,10 +14,11 @@ module.exports = (payload, callback) => {
         Authorization: `Bearer ${payload.jwt}`
       }
     })
-    .then(response => {
-      console.log(`[Auth] JWT is valid for ${response.data.properties.username}`)
+    .then( ({data}) => {
+      console.log(`[Auth] JWT is valid for ${data.properties.username}`)
+
       callback(false, {
-        username: response.data.properties.username,
+        username: data.properties.username,
       })
 
     })
@@ -35,15 +30,16 @@ module.exports = (payload, callback) => {
 
   else if(payload.credentials){
     console.log('[Auth] user is trying to authenticate using credentials')
-    axios.post(`${process.env.AUTHENTICATION_API_URL}/login`,{
-      username: payload.credentials.username,
-      password: payload.credentials.password,
-    })
-    .then(response => {
+
+    const {username, password} = payload.credentials
+    axios.post(`${process.env.AUTHENTICATION_API_URL}/login`,{ username, password })
+    .then( ({data}) => {
       console.log(`[Auth] Credentials are valid for ${payload.credentials.username}`)
+
       callback(false, {
-        jwt: response.data.jwt
+        jwt: data.jwt
       })
+
     })
     .catch(error => {
       console.log(`[Auth] Wrong credentials for ${payload.credentials.username}`)

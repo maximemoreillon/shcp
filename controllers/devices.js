@@ -25,19 +25,21 @@ const unsubscribe_if_possible = async ({status_topic}) => {
   if(devices_with_same_topic.length) return
 
   console.log(`[MQTT] Unsubscribing from ${status_topic}`)
-  require('../mqtt.js').get_mqtt_client().unsubscribe(status_topic)
+  require('../mqtt.js')
+    .get_mqtt_client()
+    .unsubscribe(status_topic)
 
 }
 
 exports.read_all = async () => {
 
-    const result =  await get_collection()
-        .find({})
-        .toArray()
+  const result =  await get_collection()
+    .find({})
+    .toArray()
 
-    console.log(`[MongoDB] Queried all devices`)
+  console.log(`[MongoDB] Queried all devices`)
 
-    return result
+  return result
 }
 
 exports.read = async (device_id) => {
@@ -53,6 +55,7 @@ exports.read = async (device_id) => {
 }
 
 exports.create = async (device) => {
+
     const result =  await get_collection()
         .insertOne(device)
 
