@@ -17,6 +17,7 @@ spec:
         image: ${CONTAINER_IMAGE_TAGGED}
         ports:
         - containerPort: 80
+        env:
         - name: AUTHORIZED_GROUPS
           value: 0035cdb9-838a-4cdd-8ab5-61dafdf569d8
         envFrom:
