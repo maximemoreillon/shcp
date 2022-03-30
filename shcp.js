@@ -6,7 +6,6 @@ const http_server = require('./http_server.js')
 const express = require('./express.js')
 const dotenv = require('dotenv')
 const pjson = require('./package.json')
-const authentication_function = require('./ws_auth.js')
 
 dotenv.config()
 

@@ -18,6 +18,7 @@ const connection_callback = (socket) => {
     // Deals with Websocket connections
     console.log('[WS] User connected')
 
+    // Auth using middleware
     socket.use(socketio_authentication_middleware(socket, authentication_function))
 
     socket.on('disconnect', () => { console.log('[WS] user disconnected') })
@@ -25,6 +26,7 @@ const connection_callback = (socket) => {
     // Respond to WS messages
 
     // Basic CRUD operations
+    // Should ideally be done using HTTP and not WS
     // Updates are emitted to everyone
     socket.on("create_device", create_device)
     socket.on("delete_device", delete_device)

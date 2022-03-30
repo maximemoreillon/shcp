@@ -3,13 +3,22 @@ const bodyParser = require("body-parser")
 const cors = require('cors')
 const pjson = require('./package.json')
 const auth = require('@moreillon/express_identification_middleware')
-
-
-const auth_options = { url: `${process.env.AUTHENTICATION_API_URL}/v2/whoami`}
-
+const group_auth = require('@moreillon/express_group_based_authorization_middleware')
+const {db_name, url: db_url, collection} = require('./db.js')
+const { broker_url } = require('./mqtt.js')
 // Routes
 const floorplan_router = require('./express_routes/floorplan.js')
 const devices_router = require('./express_routes/devices.js')
+
+
+const {
+  AUTHENTICATION_API_URL,
+  AUTHORIZED_GROUPS,
+  GROUP_AUTHORIZATION_URL,
+} = process.env
+
+
+const auth_options = { url: `${process.env.AUTHENTICATION_API_URL}/v2/whoami`}
 
 let app
 
@@ -19,15 +28,17 @@ const root_controller = (req, res) => {
     author: 'Maxime MOREILLON',
     version: pjson.version,
     authentication: {
-      url: auth_options.url
+      url: AUTHENTICATION_API_URL,
+      group_authorization_url: GROUP_AUTHORIZATION_URL,
+      authorized_groups: AUTHORIZED_GROUPS,
     },
     mongodb: {
-      url: require('./db.js').url,
-      db_name: require('./db.js').db_name,
-      collection: require('./db.js').collection,
+      url: db_url,
+      db_name: db_name,
+      collection: collection,
     },
     mqtt: {
-      url: require('./mqtt.js').broker_url,
+      url: broker_url,
     }
 
   })
@@ -42,8 +53,20 @@ const init = () => {
   app.use(cors())
 
   app.get('/', root_controller)
-  app.use('/floorplan',  auth(auth_options), floorplan_router)
-  app.use('/devices', auth(auth_options), devices_router)
+
+  app.use(auth(auth_options))
+
+  if(AUTHORIZED_GROUPS && GROUP_AUTHORIZATION_URL) {
+    console.log(`[Auth] Enabling group-based authorization`)
+    const group_auth_options = {
+      url: GROUP_AUTHORIZATION_URL,
+      groups: AUTHORIZED_GROUPS.split(',')
+    }
+    app.use(group_auth(group_auth_options))
+  }
+
+  app.use('/floorplan', floorplan_router)
+  app.use('/devices', devices_router)
 
   return app
 

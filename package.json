@@ -1,6 +1,6 @@
 {
   "name": "shcp",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "Smart Home Control Panel",
   "main": "shcp.js",
   "scripts": {
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/maximemoreillon/shcp",
   "dependencies": {
+    "@moreillon/express_group_based_authorization_middleware": "^2.1.7",
     "@moreillon/express_identification_middleware": "^1.1.0",
     "@moreillon/socketio_authentication_middleware": "0.0.1",
     "axios": "^0.21.4",

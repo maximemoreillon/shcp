@@ -14,18 +14,15 @@ spec:
     spec:
       containers:
       - name: ${APPLICATION_NAME}
-        image: ${DOCKER_IMAGE}
-        # Ensures that k8s pulls a new image on restart
-        imagePullPolicy: Always
+        image: ${CONTAINER_IMAGE_TAGGED}
         ports:
         - containerPort: 80
-        # Get environment variables from secret
+        - name: AUTHORIZED_GROUPS
+          value: 0035cdb9-838a-4cdd-8ab5-61dafdf569d8
         envFrom:
         - secretRef:
            name: environment-variables
-      # Provide credentials to the docker registry
-      imagePullSecrets:
-      - name: registry-credentials
+
 ---
 apiVersion: v1
 kind: Service
