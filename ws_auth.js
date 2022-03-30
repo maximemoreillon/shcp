@@ -38,9 +38,10 @@ module.exports = async (payload, callback) => {
     const {data} = await check_user(jwt)
     const {username} = data.properties || data
 
-    const group_auth_status = await check_groups(jwt)
-
-    if(!group_auth_status) throw `User is not part of authorized groups`
+    if(AUTHORIZED_GROUPS && GROUP_AUTHORIZATION_URL) {
+      const group_auth_status = await check_groups(jwt)
+      if(!group_auth_status) throw `User is not part of authorized groups`
+    }
 
     console.log(`[Auth] Auth successful for ${username}`)
     callback(false, { username })
