@@ -56,6 +56,8 @@ const init = () => {
 
   app.use(auth(auth_options))
 
+  console.log(`[Auth] Identification URL: ${IDENTIFICATION_URL}`)
+
   if(AUTHORIZED_GROUPS && GROUP_AUTHORIZATION_URL) {
     console.log(`[Auth] Enabling group-based authorization`)
     const group_auth_options = {
