@@ -30,11 +30,12 @@ kind: Service
 metadata:
   name: ${APPLICATION_NAME}
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: ${APPLICATION_NAME}
   ports:
   - port: 80
+    nodeport: 30055
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress

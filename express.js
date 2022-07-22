@@ -4,7 +4,7 @@ const cors = require('cors')
 const pjson = require('./package.json')
 const auth = require('@moreillon/express_identification_middleware')
 const group_auth = require('@moreillon/express_group_based_authorization_middleware')
-const {db_name, url: db_url, collection} = require('./db.js')
+const { db_name, url: db_url, collection } = require('./db.js')
 const { broker_url } = require('./mqtt.js')
 // Routes
 const floorplan_router = require('./express_routes/floorplan.js')
