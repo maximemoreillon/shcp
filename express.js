@@ -12,13 +12,13 @@ const devices_router = require('./express_routes/devices.js')
 
 
 const {
-  AUTHENTICATION_API_URL,
+  IDENTIFICATION_URL,
   AUTHORIZED_GROUPS,
   GROUP_AUTHORIZATION_URL,
 } = process.env
 
 
-const auth_options = { url: `${process.env.AUTHENTICATION_API_URL}/v2/whoami`}
+const auth_options = { url: IDENTIFICATION_URL }
 
 let app
 
@@ -28,7 +28,7 @@ const root_controller = (req, res) => {
     author: 'Maxime MOREILLON',
     version: pjson.version,
     authentication: {
-      url: AUTHENTICATION_API_URL,
+      url: IDENTIFICATION_URL,
       group_authorization_url: GROUP_AUTHORIZATION_URL,
       authorized_groups: AUTHORIZED_GROUPS,
     },

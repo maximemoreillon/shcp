@@ -3,19 +3,21 @@ const dotenv = require('dotenv')
 
 dotenv.config()
 
-const port = process.env.APP_PORT || 80
+const {
+    APP_PORT
+} = process.env
 
 let http_server
 
 exports.init = (app) => {
     http_server = http.Server(app)
-    http_server.listen(port, () => {
-        console.log(`[HTTP Server] listening on port ${port}`)
+    http_server.listen(APP_PORT, () => {
+        console.log(`[HTTP Server] listening on port ${APP_PORT}`)
     })
 
     return http_server
 }
 
-exports.port = port
+exports.port = APP_PORT
 exports.get_http_server = () => http_server
 exports.http_server = http_server

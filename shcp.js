@@ -1,4 +1,3 @@
-// Depenedencies
 const db = require('./db.js')
 const mqtt = require('./mqtt.js')
 const websockets = require('./websockets.js')
@@ -8,8 +7,6 @@ const dotenv = require('dotenv')
 const pjson = require('./package.json')
 
 dotenv.config()
-
-const port = process.env.APP_PORT || 80
 
 const init = async () => {
   console.log(`-- SHCP v${pjson.version} --`)

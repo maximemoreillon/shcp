@@ -4,7 +4,7 @@ const dotenv = require('dotenv')
 dotenv.config()
 
 const {
-  AUTHENTICATION_API_URL,
+  IDENTIFICATION_URL,
   AUTHORIZED_GROUPS,
   GROUP_AUTHORIZATION_URL,
 } = process.env
@@ -12,9 +12,8 @@ const {
 
 
 const check_user = async (jwt) => {
-  const url = `${AUTHENTICATION_API_URL}/v2/whoami`
   const headers = { Authorization: `Bearer ${jwt}` }
-  return axios.get(url,{ headers })
+  return axios.get(IDENTIFICATION_URL,{ headers })
 }
 
 const check_groups = async (jwt) => {
@@ -56,6 +55,6 @@ module.exports = async (payload, callback) => {
 
 }
 
-exports.url = AUTHENTICATION_API_URL
+exports.url = IDENTIFICATION_URL
 exports.authorized_groups = AUTHORIZED_GROUPS
 exports.group_authorization_url = GROUP_AUTHORIZATION_URL
