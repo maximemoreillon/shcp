@@ -36,6 +36,6 @@
     "mqtt": "^3.0.0",
     "multer": "^1.4.5-lts.1",
     "request": "^2.88.2",
-    "socket.io": "^2.4.1"
+    "socket.io": "^2.5.0"
   }
 }
