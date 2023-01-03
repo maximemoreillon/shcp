@@ -4,6 +4,7 @@
   "description": "Smart Home Control Panel",
   "main": "shcp.js",
   "scripts": {
+    "dev": "nodemon shcp.js --ignore floorplan",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -33,6 +34,7 @@
     "http-proxy": "^1.18.1",
     "mongodb": "^3.7.3",
     "mqtt": "^3.0.0",
+    "multer": "^1.4.5-lts.1",
     "request": "^2.88.2",
     "socket.io": "^2.4.1"
   }
