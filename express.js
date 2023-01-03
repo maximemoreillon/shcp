@@ -23,32 +23,6 @@ const auth_options = { url: IDENTIFICATION_URL }
 
 let app
 
-const root_controller = (req, res) => {
-  res.send({
-    application_name: "SHCP",
-    author: "Maxime MOREILLON",
-    version,
-    authentication: {
-      url: IDENTIFICATION_URL,
-      group_authorization_url: GROUP_AUTHORIZATION_URL,
-      authorized_groups: AUTHORIZED_GROUPS,
-    },
-    mongodb: {
-      url: db_url,
-      db_name: db_name,
-      collection: collection,
-    },
-    mqtt: {
-      url: broker_url,
-    },
-    floorplan: {
-      floorplan_filename,
-      floorplan_directory_path,
-      floorplan_path,
-    },
-  })
-}
-
 const init = () => {
   console.log("[Express] Initilization")
 
@@ -57,7 +31,31 @@ const init = () => {
   app.use(bodyParser.json())
   app.use(cors())
 
-  app.get("/", root_controller)
+  app.get("/", (req, res) => {
+    res.send({
+      application_name: "SHCP",
+      author: "Maxime MOREILLON",
+      version,
+      authentication: {
+        url: IDENTIFICATION_URL,
+        group_authorization_url: GROUP_AUTHORIZATION_URL,
+        authorized_groups: AUTHORIZED_GROUPS,
+      },
+      mongodb: {
+        url: db_url,
+        db_name: db_name,
+        collection: collection,
+      },
+      mqtt: {
+        url: broker_url,
+      },
+      floorplan: {
+        floorplan_filename,
+        floorplan_directory_path,
+        floorplan_path,
+      },
+    })
+  })
 
   app.use(auth(auth_options))
 

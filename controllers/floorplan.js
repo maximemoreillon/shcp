@@ -5,5 +5,5 @@ exports.get_floorplan = (req, res) => {
 }
 
 exports.floorplan_upload = (req, res) => {
-  res.send("OK?")
+  res.send("OK")
 }

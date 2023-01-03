@@ -1,22 +1,21 @@
-const express = require('express')
-const device_controller = require('../controllers/devices.js')
+const { Router } = require("express")
+const {
+  create_device,
+  get_all_devices,
+  update_device,
+  delete_device,
+  read_device,
+} = require("../controllers/devices.js")
 
-const router = express.Router()
+const router = Router()
 
-const get_all_devices = async (req, res) => {
+router.route("/").post(create_device).get(get_all_devices)
 
-    try {
-        const devices = await device_controller.read_all()
-        res.send(devices)
-    } catch (error) {
-        console.log(error)
-        res.stastus(500).send(error)
-    }
-    
-}
-
-
-router.route('/')
-    .get(get_all_devices)
+router
+  .route("/:_id")
+  .get(read_device)
+  .patch(update_device)
+  .put(update_device)
+  .delete(delete_device)
 
 module.exports = router
