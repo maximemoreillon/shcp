@@ -1,8 +1,7 @@
-const path = require("path")
+const { floorplan_path } = require("../config")
 
 exports.get_floorplan = (req, res) => {
-  const floorplanPath = path.resolve("./floorplan/floorplan")
-  res.sendFile(floorplanPath)
+  res.sendFile(floorplan_path)
 }
 
 exports.floorplan_upload = (req, res) => {
