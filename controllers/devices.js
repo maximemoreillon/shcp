@@ -3,15 +3,15 @@ const { get_collection } = require("../db.js")
 const { get_io } = require("../websockets.js")
 const createHttpError = require("http-errors")
 
-const subscribe_if_possible = ({ status_topic }) => {
+const subscribe_to_device_topic = ({ status_topic }) => {
   if (!status_topic) return
 
-  // Not very nice
   console.log(`[MQTT] subscribing to ${status_topic}`)
+  // Not very nice
   require("../mqtt.js").get_mqtt_client().subscribe(status_topic)
 }
 
-const unsubscribe_if_possible = async ({ status_topic }) => {
+const unsubscribe_from_device_topic = async ({ status_topic }) => {
   if (!status_topic) return
 
   const devices_with_same_topic = await get_collection()
@@ -32,7 +32,7 @@ exports.create_device = async (req, res, next) => {
     const created_device = result.ops[0]
     get_io().sockets.emit("some_devices_added_or_updated", [created_device])
 
-    subscribe_if_possible(created_device)
+    subscribe_to_device_topic(created_device)
 
     console.log(`[MongoDB] Device ${created_device._id} created`)
 
@@ -42,14 +42,9 @@ exports.create_device = async (req, res, next) => {
   }
 }
 
-const read_all_devices = async () => {
-  return await get_collection().find({}).toArray()
-}
-exports.read_all_devices = read_all_devices
-
-exports.get_all_devices = async (req, res, next) => {
+exports.read_all_devices = async (req, res, next) => {
   try {
-    const devices = await read_all_devices()
+    const devices = await get_collection().find({}).toArray()
     res.send(devices)
   } catch (error) {
     next(error)
@@ -91,9 +86,8 @@ exports.update_device = async (req, res, next) => {
 
     get_io().sockets.emit("some_devices_added_or_updated", [updated_device])
 
-    // Technically, should unsubscribe from previous topic
-    // TODO; subscribe only if new properties contain topic
-    subscribe_if_possible(updated_device)
+    // TODO: unsubscribe from previous topic and subscribe to new one, if any
+    subscribe_to_device_topic(updated_device)
 
     console.log(`[MongoDB] Device ${updated_device._id} updated`)
 
@@ -124,7 +118,7 @@ exports.delete_device = async (req, res, next) => {
     const { value: device } = await get_collection().findOneAndDelete(query)
     if (!device) throw createHttpError(404, `Device ${_id} not found`)
 
-    await unsubscribe_if_possible(device)
+    await unsubscribe_from_device_topic(device)
     get_io().sockets.emit("device_deleted", device)
     console.log(`[MongoDB] Device ${_id} deleted`)
 

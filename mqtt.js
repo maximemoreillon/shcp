@@ -1,8 +1,6 @@
 const mqtt = require("mqtt")
-const {
-  read_all_devices,
-  update_many_devices,
-} = require("./controllers/devices.js")
+const { get_collection } = require("./db.js")
+const { update_many_devices } = require("./controllers/devices.js")
 
 const {
   MQTT_USERNAME,
@@ -26,9 +24,8 @@ const init = () => {
 
 const subscribe_all = async () => {
   console.log(`[MQTT] Subscribing to all topics`)
-  // Subscribe to all topics
 
-  const devices = await read_all_devices()
+  const devices = await get_collection().find({}).toArray()
 
   devices
     .filter((device) => device.status_topic)

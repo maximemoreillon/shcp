@@ -1,7 +1,7 @@
 const { Router } = require("express")
 const {
   create_device,
-  get_all_devices,
+  read_all_devices,
   update_device,
   delete_device,
   read_device,
@@ -9,7 +9,7 @@ const {
 
 const router = Router()
 
-router.route("/").post(create_device).get(get_all_devices)
+router.route("/").post(create_device).get(read_all_devices)
 
 router
   .route("/:_id")
