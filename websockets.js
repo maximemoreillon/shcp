@@ -24,26 +24,9 @@ const connection_callback = (socket) => {
     console.log("[WS] user disconnected")
   })
 
-  // // individual sockets
-  socket.on("front_to_mqtt", front_to_mqtt)
-
   socket.on("disconnect", () => {
     console.log("[WS] user disconnected")
   })
-}
-
-const front_to_mqtt = ({ command_topic, payload }) => {
-  // Convert WS messages into MQTT messages
-
-  if (!command_topic || !payload) return
-
-  console.log(`[WS to MQTT] Publishing to ${command_topic}`)
-
-  const publish_options = { qos: 1, retain: true }
-
-  require("./mqtt")
-    .get_mqtt_client()
-    .publish(command_topic, payload, publish_options)
 }
 
 exports.get_io = () => io

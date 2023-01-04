@@ -1,5 +1,4 @@
 const express = require("express")
-const bodyParser = require("body-parser")
 const cors = require("cors")
 const { version } = require("./package.json")
 const auth = require("@moreillon/express_identification_middleware")
@@ -11,10 +10,6 @@ const {
   floorplan_directory_path,
   floorplan_path,
 } = require("./config")
-
-// Routes
-const floorplan_router = require("./routes/floorplan.js")
-const devices_router = require("./routes/devices.js")
 
 const { IDENTIFICATION_URL, AUTHORIZED_GROUPS, GROUP_AUTHORIZATION_URL } =
   process.env
@@ -28,7 +23,7 @@ const init = () => {
 
   app = express()
 
-  app.use(bodyParser.json())
+  app.use(express.json())
   app.use(cors())
 
   app.get("/", (req, res) => {
@@ -70,8 +65,9 @@ const init = () => {
     app.use(group_auth(group_auth_options))
   }
 
-  app.use("/floorplan", floorplan_router)
-  app.use("/devices", devices_router)
+  app.use("/floorplan", require("./routes/floorplan.js"))
+  app.use("/devices", require("./routes/devices.js"))
+  app.use("/mqtt", require("./routes/mqtt.js"))
 
   return app
 }

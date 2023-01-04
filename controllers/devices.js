@@ -1,6 +1,7 @@
 const { ObjectID } = require("mongodb")
 const { get_collection } = require("../db.js")
 const { get_io } = require("../websockets.js")
+const createHttpError = require("http-errors")
 
 const subscribe_if_possible = ({ status_topic }) => {
   if (!status_topic) return
@@ -120,12 +121,14 @@ exports.delete_device = async (req, res, next) => {
   const query = { _id: ObjectID(_id) }
 
   try {
-    const result = await get_collection().deleteOne(query)
+    const { value: device } = await get_collection().findOneAndDelete(query)
+    if (!device) throw createHttpError(404, `Device ${_id} not found`)
 
-    get_io().sockets.emit("device_deleted", { _id })
+    await unsubscribe_if_possible(device)
+    get_io().sockets.emit("device_deleted", device)
     console.log(`[MongoDB] Device ${_id} deleted`)
 
-    res.send(result)
+    res.send(device)
   } catch (error) {
     next(error)
   }
