@@ -13,16 +13,16 @@ spec:
         app: ${APPLICATION_NAME}
     spec:
       containers:
-      - name: ${APPLICATION_NAME}
-        image: ${CONTAINER_IMAGE_TAGGED}
-        ports:
-        - containerPort: 80
-        env:
-        - name: AUTHORIZED_GROUPS
-          value: 0035cdb9-838a-4cdd-8ab5-61dafdf569d8
-        envFrom:
-        - secretRef:
-           name: environment-variables
+        - name: ${APPLICATION_NAME}
+          image: ${CONTAINER_IMAGE_TAGGED}
+          ports:
+            - containerPort: 80
+          env:
+            - name: AUTHORIZED_GROUPS
+              value: 0035cdb9-838a-4cdd-8ab5-61dafdf569d8
+          envFrom:
+            - secretRef:
+                name: environment-variables
 
 ---
 apiVersion: v1
@@ -34,28 +34,27 @@ spec:
   selector:
     app: ${APPLICATION_NAME}
   ports:
-  - port: 80
+    - port: 80
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  # Name of the ingress, named after the application
   name: ${APPLICATION_NAME}
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
   tls:
-  - hosts:
-    - ${CERTIFICATE_DOMAIN}
-    # Name of the secret, i.e. the certificates
-    secretName: ${APPLICATION_NAME}
+    - hosts:
+        - ${K8S_INGRESS_HOST}
+      secretName: ${APPLICATION_NAME}-tls
   rules:
-  - host: ${CERTIFICATE_DOMAIN}
-    http:
-      paths:
-      - path: /
-        backend:
-          # Name of the service, named after the app
-          serviceName: ${APPLICATION_NAME}
-          servicePort: 80
+    - host: ${K8S_INGRESS_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${APPLICATION_NAME}
+                port:
+                  number: 80
