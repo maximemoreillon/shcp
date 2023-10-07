@@ -1,11 +1,11 @@
-const { Router } = require("express")
-const {
+import { Router } from "express"
+import {
   create_device,
   read_all_devices,
   update_device,
   delete_device,
   read_device,
-} = require("../controllers/devices.js")
+} from "../controllers/devices"
 
 const router = Router()
 
@@ -18,4 +18,4 @@ router
   .put(update_device)
   .delete(delete_device)
 
-module.exports = router
+export default router

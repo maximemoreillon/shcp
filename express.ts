@@ -1,24 +1,30 @@
-const express = require("express")
-const cors = require("cors")
-const { version } = require("./package.json")
-const auth = require("@moreillon/express_identification_middleware")
-const group_auth = require("@moreillon/express_group_based_authorization_middleware")
-const { db_name, url: db_url, collection } = require("./db.js")
-const { broker_url } = require("./mqtt.js")
-const {
+import express from "express"
+import "express-async-errors"
+import cors from "cors"
+import { version } from "./package.json"
+import auth from "@moreillon/express_identification_middleware"
+// @ts-ignore
+import group_auth from "@moreillon/express_group_based_authorization_middleware"
+import { MONGODB_DB, MONGODB_URL } from "./db"
+import { broker_url } from "./mqtt"
+import {
   floorplan_filename,
   floorplan_directory_path,
   floorplan_path,
-} = require("./config")
+} from "./config"
+import type { Express } from "express"
+import floorplanRouter from "./routes/floorplan"
+import devicesRouter from "./routes/devices"
+import mqttRouter from "./routes/mqtt"
 
 const { IDENTIFICATION_URL, AUTHORIZED_GROUPS, GROUP_AUTHORIZATION_URL } =
   process.env
 
 const auth_options = { url: IDENTIFICATION_URL }
 
-let app
+export let app: Express
 
-const init = () => {
+export const init = () => {
   console.log("[Express] Initilization")
 
   app = express()
@@ -37,9 +43,8 @@ const init = () => {
         authorized_groups: AUTHORIZED_GROUPS,
       },
       mongodb: {
-        url: db_url,
-        db_name: db_name,
-        collection: collection,
+        url: MONGODB_URL,
+        db_name: MONGODB_DB,
       },
       mqtt: {
         url: broker_url,
@@ -52,9 +57,10 @@ const init = () => {
     })
   })
 
-  app.use(auth(auth_options))
-
-  console.log(`[Auth] Identification URL: ${IDENTIFICATION_URL}`)
+  if (IDENTIFICATION_URL) {
+    app.use(auth(auth_options))
+    console.log(`[Auth] Identification URL: ${IDENTIFICATION_URL}`)
+  } else console.log(`[Auth] is DISABLED`)
 
   if (AUTHORIZED_GROUPS && GROUP_AUTHORIZATION_URL) {
     console.log(`[Auth] Enabling group-based authorization`)
@@ -65,13 +71,11 @@ const init = () => {
     app.use(group_auth(group_auth_options))
   }
 
-  app.use("/floorplan", require("./routes/floorplan.js"))
-  app.use("/devices", require("./routes/devices.js"))
-  app.use("/mqtt", require("./routes/mqtt.js"))
+  app.use("/floorplan", floorplanRouter)
+  app.use("/devices", devicesRouter)
+  app.use("/mqtt", mqttRouter)
 
   return app
 }
 
-exports.get_app = () => app
-exports.app = app
-exports.init = init
+export const get_app = () => app

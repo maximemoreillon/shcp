@@ -3,4 +3,4 @@ WORKDIR /usr/src/app
 COPY . .
 RUN npm install
 EXPOSE 80
-CMD [ "node", "shcp.js" ]
+CMD [ "npm", "run", "start" ]

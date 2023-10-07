@@ -1,10 +1,7 @@
-const { Router } = require("express")
-const { floorplan_filename, floorplan_directory_path } = require("../config")
-const multer = require("multer")
-const {
-  get_floorplan,
-  floorplan_upload,
-} = require("../controllers/floorplan.js")
+import { Router } from "express"
+import { floorplan_filename, floorplan_directory_path } from "../config"
+import { get_floorplan, floorplan_upload } from "../controllers/floorplan"
+import multer from "multer"
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -24,4 +21,4 @@ router
   .get(get_floorplan)
   .post(upload.single("image"), floorplan_upload)
 
-module.exports = router
+export default router

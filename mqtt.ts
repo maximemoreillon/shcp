@@ -1,21 +1,21 @@
-const mqtt = require("mqtt")
-const { get_collection } = require("./db.js")
-const { update_many_devices } = require("./controllers/devices.js")
+import mqtt, { MqttClient } from "mqtt"
+import { update_many_devices } from "./controllers/devices"
+import device from "./models/device"
 
 const {
   MQTT_USERNAME,
   MQTT_PASSWORD,
-  MQTT_URL = "mqtt:localhost",
+  MQTT_URL = "mqtt://localhost",
 } = process.env
 
-const connection_options = {
+export const connection_options = {
   username: MQTT_USERNAME,
   password: MQTT_PASSWORD,
 }
 
-let client
+export let client: MqttClient
 
-const init = () => {
+export const init = () => {
   console.log("[MQTT] Initialization")
   client = mqtt.connect(MQTT_URL, connection_options)
   client.on("connect", connection_callback)
@@ -25,11 +25,11 @@ const init = () => {
 const subscribe_all = async () => {
   console.log(`[MQTT] Subscribing to all topics`)
 
-  const devices = await get_collection().find({}).toArray()
+  const devices = await device.find({})
 
   devices
-    .filter((device) => device.status_topic)
-    .forEach(({ status_topic }) => {
+    .filter((device: any) => device.status_topic)
+    .forEach(({ status_topic }: any) => {
       //console.log(`[MQTT] Subscribing to ${status_topic}`)
       client.subscribe(status_topic)
     })
@@ -41,7 +41,7 @@ const connection_callback = () => {
   subscribe_all()
 }
 
-const message_callback = async (topic, payload) => {
+const message_callback = async (topic: string, payload: any) => {
   // Callback for MQTT messages
   // Used to update the state of devices in the back and front end
 
@@ -54,8 +54,5 @@ const message_callback = async (topic, payload) => {
   await update_many_devices({ query, action })
 }
 
-exports.broker_url = MQTT_URL
-exports.connection_options = connection_options
-exports.init = init
-exports.get_mqtt_client = () => client
-exports.client = client
+export const broker_url = MQTT_URL
+export const get_mqtt_client = () => client
