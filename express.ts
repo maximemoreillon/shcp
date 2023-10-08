@@ -57,10 +57,8 @@ export const init = () => {
     })
   })
 
-  if (IDENTIFICATION_URL) {
-    app.use(auth(auth_options))
-    console.log(`[Auth] Identification URL: ${IDENTIFICATION_URL}`)
-  } else console.log(`[Auth] is DISABLED`)
+  app.use(auth(auth_options))
+  console.log(`[Auth] Identification URL: ${IDENTIFICATION_URL}`)
 
   if (AUTHORIZED_GROUPS && GROUP_AUTHORIZATION_URL) {
     console.log(`[Auth] Enabling group-based authorization`)
