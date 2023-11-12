@@ -16,11 +16,13 @@ import type { Express } from "express"
 import floorplanRouter from "./routes/floorplan"
 import devicesRouter from "./routes/devices"
 import mqttRouter from "./routes/mqtt"
+import promBundle from "express-prom-bundle"
 
 const { IDENTIFICATION_URL, AUTHORIZED_GROUPS, GROUP_AUTHORIZATION_URL } =
   process.env
 
 const auth_options = { url: IDENTIFICATION_URL }
+const promOptions = { includeMethod: true, includePath: true }
 
 export let app: Express
 
@@ -31,6 +33,7 @@ export const init = () => {
 
   app.use(express.json())
   app.use(cors())
+  app.use(promBundle(promOptions))
 
   app.get("/", (req, res) => {
     res.send({
