@@ -5,7 +5,8 @@
   "main": "shcp.js",
   "scripts": {
     "dev": "nodemon index.ts --ignore floorplan",
-    "start": "ts-node index.ts"
+    "build": "tsc --outdir ./build -p . ",
+    "start": "node ./build/index.js"
   },
   "repository": {
     "type": "git",
