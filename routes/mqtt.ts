@@ -1,5 +1,5 @@
 import { Router } from "express"
-
+import { get_mqtt_client } from "../mqtt"
 const router = Router()
 
 router.post("/", (req, res, next) => {
@@ -7,9 +7,9 @@ router.post("/", (req, res, next) => {
 
   console.log(`[MQTT] Publishing to ${topic}`)
 
-  const publish_options = { qos: 1, retain: true }
+  const publish_options: any = { qos: 1, retain: true }
 
-  require("../mqtt").get_mqtt_client().publish(topic, payload, publish_options)
+  get_mqtt_client().publish(topic, payload, publish_options)
 
   res.send("OK")
 })
