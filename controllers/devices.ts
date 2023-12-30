@@ -3,13 +3,13 @@ import { get_io } from "../websockets"
 import { Request, Response } from "express"
 import createHttpError from "http-errors"
 import Device from "../models/device"
-import { get_mqtt_client } from "../mqtt"
+import { getMqttClient } from "../mqtt"
 const subscribe_to_device_topic = ({ status_topic }: any) => {
   if (!status_topic) return
 
   console.log(`[MQTT] subscribing to ${status_topic}`)
   // Not very nice
-  get_mqtt_client().subscribe(status_topic)
+  getMqttClient().subscribe(status_topic)
 }
 
 const unsubscribe_from_device_topic = async ({ status_topic }: any) => {
@@ -20,7 +20,7 @@ const unsubscribe_from_device_topic = async ({ status_topic }: any) => {
   if (devices_with_same_topic.length) return
 
   console.log(`[MQTT] Unsubscribing from ${status_topic}`)
-  get_mqtt_client().unsubscribe(status_topic)
+  getMqttClient().unsubscribe(status_topic)
 }
 
 export const create_device = async (req: Request, res: Response) => {

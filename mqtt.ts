@@ -55,4 +55,4 @@ const message_callback = async (topic: string, payload: any) => {
 }
 
 export const broker_url = MQTT_URL
-export const get_mqtt_client = () => client
+export const getMqttClient = () => client

@@ -1,18 +1,16 @@
 import { Router } from "express"
-import { client } from "../mqtt"
+import { getMqttClient } from "../mqtt"
 
 const router = Router()
 
-router.post("/", (req, res, next) => {
+router.post("/", (req, res) => {
   const { topic, payload } = req.body
-
-  console.log(`[MQTT] Publishing to ${topic}`)
-
   const publish_options: any = { qos: 1, retain: true }
-
-  client.publish(topic, payload, publish_options)
-
-  res.send("OK")
+  getMqttClient().publish(topic, payload, publish_options)
+  res.send({
+    topic,
+    payload,
+  })
 })
 
 export default router
