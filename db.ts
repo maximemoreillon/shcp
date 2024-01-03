@@ -1,18 +1,37 @@
 import mongoose from "mongoose"
 
-import dotenv from "dotenv"
+export const {
+  MONGODB_CONNECTION_STRING,
+  MONGODB_PROTOCOL = "mongodb",
+  MONGODB_USERNAME,
+  MONGODB_PASSWORD,
+  MONGODB_HOST = "localhost",
+  MONGODB_PORT,
+  MONGODB_DB = "shcp",
+  MONGODB_OPTIONS = "",
+} = process.env
 
-dotenv.config()
+const mongodbPort = MONGODB_PORT ? `:${MONGODB_PORT}` : ""
 
-export const { MONGODB_DB = "shcp", MONGODB_URL = "mongodb://mongo:27017" } =
-  process.env
+const connectionString =
+  MONGODB_CONNECTION_STRING ||
+  (MONGODB_USERNAME && MONGODB_PASSWORD
+    ? `${MONGODB_PROTOCOL}://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}${mongodbPort}/${MONGODB_DB}${MONGODB_OPTIONS}`
+    : `${MONGODB_PROTOCOL}://${MONGODB_HOST}${mongodbPort}/${MONGODB_DB}${MONGODB_OPTIONS}`)
+
+export const redactedConnectionString = connectionString.replace(
+  /:.*@/,
+  "://***:***@"
+)
 
 export const connect = () =>
   new Promise((resolve) => {
-    const connection_url = `${MONGODB_URL}/${MONGODB_DB}`
+    console.log(
+      `[MongoDB] Attempting connection to ${redactedConnectionString}`
+    )
 
     mongoose
-      .connect(connection_url)
+      .connect(connectionString)
       .then(() => {
         console.log("[Mongoose] Initial connection successful")
         resolve("Connected")

@@ -5,7 +5,7 @@ import { version } from "./package.json"
 import auth from "@moreillon/express_identification_middleware"
 // @ts-ignore
 import group_auth from "@moreillon/express_group_based_authorization_middleware"
-import { MONGODB_DB, MONGODB_URL } from "./db"
+import { redactedConnectionString } from "./db"
 import { broker_url } from "./mqtt"
 import {
   floorplan_filename,
@@ -46,8 +46,7 @@ export const init = () => {
         authorized_groups: AUTHORIZED_GROUPS,
       },
       mongodb: {
-        url: MONGODB_URL,
-        db_name: MONGODB_DB,
+        connection_string: redactedConnectionString,
       },
       mqtt: {
         url: broker_url,
