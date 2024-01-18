@@ -54,11 +54,10 @@ export const read_device = async (req: Request, res: Response) => {
 }
 
 export const update_device = async (req: Request, res: Response) => {
-  console.log("Attempting to update device")
   const { _id } = req.params
   const new_properties: any = req.body
 
-  const query = { _id: new ObjectId(_id) }
+  const query = { _id }
   const options = { returnOriginal: false }
 
   const updatedDevice = await Device.findOneAndReplace(
@@ -94,7 +93,7 @@ export const update_many_devices = async ({ query, action }: any) => {
 export const delete_device = async (req: Request, res: Response) => {
   const { _id } = req.params
 
-  const query = { _id: new ObjectId(_id) }
+  const query = { _id }
 
   const device = await Device.findOneAndDelete(query)
 
